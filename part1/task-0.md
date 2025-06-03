@@ -9,7 +9,11 @@ This document describes the **high-level architecture** of the HBnB Evolution ap
 ## 🗂️ Architecture Diagram
 
 ```
+
 ```
+
+![Diagramme de haut lvl exo 0 drawio](https://github.com/user-attachments/assets/253c9356-c659-48c0-a1f4-87212ed850df)
+
 
 ---
 
