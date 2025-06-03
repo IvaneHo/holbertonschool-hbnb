@@ -1,2 +1,0 @@
-# holbertonschool-hbnb
-HBnB Evolution
