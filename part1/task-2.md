@@ -20,7 +20,7 @@ A new user sends a POST request to create an account.
 - `UserManager` creates a `User` instance
 - `UserRepository` saves it to the database
 
-![User Registration](https://github.com/user-attachments/assets/YOUR_ID/Diagramme%20de%20sequence%20User%20Regestration%20exo%202%20part1.png)
+![Diagramme de sequence User Regestration exo 2 part1](https://github.com/user-attachments/assets/4a9dda9d-ee52-463c-8753-2a4a413dc4c6)
 
 ---
 
@@ -33,7 +33,7 @@ An authenticated user submits a new place.
 - The Facade invokes `PlaceManager` to instantiate the new place
 - The place is saved through the `PlaceRepository`
 
-![Place Creation](https://github.com/user-attachments/assets/YOUR_ID/Diagramme%20de%20sequence%20Place%20Creation%20exo%202%20part%202.png)
+![Diagramme de sequence Place Creation exo 2 part 2](https://github.com/user-attachments/assets/1a9113cc-4e77-4a75-92e0-cef352c89dd9)
 
 ---
 
@@ -47,7 +47,8 @@ A user submits a review for a place they've visited.
 - `ReviewManager` ensures the user visited the place
 - If valid, it stores the review using `ReviewRepository`
 
-![Review Submission](https://github.com/user-attachments/assets/YOUR_ID/Diagramme%20de%20sequence%20Review%20Submission%20exo%202%20part%203.png)
+![Diagramme de sequence Review Submission exo 2 part 3](https://github.com/user-attachments/assets/f7c8d85f-d265-49ca-9cce-eca7afe6679f)
+
 
 ---
 
@@ -61,8 +62,7 @@ A client fetches places filtered by a maximum price.
 - `PlaceManager` queries the repository with appropriate criteria
 - A list of places is returned
 
-![Fetching Places](https://github.com/user-attachments/assets/YOUR_ID/Diagramme%20de%20sequence%20Fetching%20Places%20exo%202%20part%204.png)
-
+![Diagramme de sequence Fetching Places exo 2 part 4](https://github.com/user-attachments/assets/62f0f07c-34cd-4a9f-8ce2-5cf1cc72180e)
 ---
 
 ## ✅ Summary
