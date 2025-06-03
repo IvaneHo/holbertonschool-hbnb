@@ -89,7 +89,8 @@ These classes define the heart of the system's behavior, following object-orient
 
 ## 🖼️ Class Diagram
 
-![Class Diagram – Task 1](https://github.com/user-attachments/assets/253c9356-c659-48c0-a1f4-87212ed850df)
+![Diagramme de classe Exo 1 drawio](https://github.com/user-attachments/assets/56d98539-aa47-4a79-accd-0112bc6d7b12)
+
 
 ---
 
