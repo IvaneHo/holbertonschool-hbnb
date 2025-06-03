@@ -4,19 +4,19 @@
 
 This document describes the **high-level architecture** of the HBnB Evolution application, which is based on a **simplified three-layer model**. The system separates user interactions, business logic, and data persistence into distinct packages, improving **maintainability** and **scalability**.
 
----
+
 
 ## 🗂️ Architecture Diagram
 
-```
 
-```
+
+---
 
 ![Diagramme de haut lvl exo 0 drawio](https://github.com/user-attachments/assets/253c9356-c659-48c0-a1f4-87212ed850df)
 
 
----
 
+---
 ## 🧱 Layer Responsibilities
 
 ### 🎯 1. **Presentation Layer**
