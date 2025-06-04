@@ -138,6 +138,12 @@ The following sequence diagrams illustrate interactions across the system layers
 
 ---
 
+## 👤 Authors
 
+* Hamza Hammadi - https://github.com/Hamza-coder3011 
+* Ivane Bagashvili - https://github.com/IvaneHo
+* [Holberton School Dijon]  
+* Part 1: HBnB UML 
+* Date: 26 may to 6 June 2025  
 
 ---
