@@ -1,15 +1,12 @@
-# 📦 task-0.md – High-Level Package Diagram
 
-## 🧭 Overview
+# task-0.md – High-Level Package Diagram
 
-This document describes the **high-level architecture** of the HBnB Evolution application, which is based on a **simplified three-layer model**. The system separates user interactions, business logic, and data persistence into distinct packages, improving **maintainability** and **scalability**.
+## General Overview
 
+This document explains the overall architecture of the HBnB Evolution application.  
+We chose a **three-layer structure** to clearly separate user interactions, business logic, and data storage.
 
-
-## 🗂️ Architecture Diagram
-
-
-
+## Architecture Diagram
 ---
 
 ![Diagramme de haut lvl exo 0 drawio](https://github.com/user-attachments/assets/253c9356-c659-48c0-a1f4-87212ed850df)
@@ -17,39 +14,44 @@ This document describes the **high-level architecture** of the HBnB Evolution ap
 
 
 ---
-## 🧱 Layer Responsibilities
+*(The diagram shows three main packages: PresentationLayer, BusinessLogicLayer, and PersistenceLayer, with an HBnBFacade interface connecting the first two.)*
 
-### 🎯 1. **Presentation Layer**
-- Handles **HTTP requests** and **responses**
-- Performs **input validation** and **output formatting**
-- Delegates all calls to business logic through the `HBnBFacade`
+## The Three Layers
 
-### 🧠 2. **Business Logic Layer**
-- Contains **core domain logic** and business rules
-- Manages entities like `User`, `Place`, `Review`, and `Amenity`
-- Delegates data access to repositories in the persistence layer
+### 1. Presentation Layer
 
-### 💾 3. **Persistence Layer**
-- Manages **database operations**
-- Implements repository classes that **abstract CRUD logic**
-- Ensures **data integrity** and clean separation from domain logic
+This is where the user interacts with the system through API calls.  
+It includes **services** like `UserService`, `PlaceService`, etc., which receive the requests and then call the facade.
 
----
+### 2. Business Logic Layer
 
-## 🔁 Communication Flow
+This layer contains the **managers** (`UserManager`, `PlaceManager`, etc.) that apply the business rules.  
+Everything goes through the **`HBnBFacade`**, which acts as a single entry point to this layer.  
+It also includes models like `User`, `Place`, `Review`, and `Amenity`.
 
-Each major interaction (e.g. user registration, place creation, or review submission)  
-follows a **consistent and modular flow**:
+### 3. Persistence Layer
 
-**Service → HBnBFacade → Business Logic → Repository → Database**
+This layer handles **repositories** (like `UserRepository`, etc.) which directly interact with the database.  
+Only the business logic layer uses this — not the services.
 
-This structure:
-- ✅ Promotes **separation of concerns**
-- 🧪 Improves **testability**
-- 🧩 Centralizes logic access via `HBnBFacade`
+## Why the HBnBFacade?
 
----
+We added the facade to keep the architecture clean.  
+It provides a **central interface** for accessing business logic, so the services don’t have to know the details.  
+It makes the system easier to maintain and test.
 
-## ✅ Summary
+## Example Flow
 
-This three-layer architecture, enhanced by the **Facade Pattern**, provides a **clean and unified interface** (`HBnBFacade`) for interacting with business operations. It reinforces the application’s **modularity**, **maintainability**, and supports future **feature expansion** with minimal coupling.
+Let’s say a user wants to create a place. Here’s how the system handles it:
+
+→ The **Service** receives the request  
+→ It calls the **Facade**  
+→ The Facade calls the relevant **Manager**  
+→ The Manager uses a **Repository**  
+→ The Repository interacts with the **database**
+
+## Conclusion
+
+This 3-layer structure, with a facade in the middle, helps keep the project well-organized, easy to maintain, and scalable in the long run.
+
+
