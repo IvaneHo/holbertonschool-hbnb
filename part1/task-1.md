@@ -9,7 +9,6 @@ Here, we define the key entities of the application (`User`, `Place`, `Review`, 
 The goal is to have a clear foundation for implementing features like place creation, leaving reviews, and managing users.
 
 ---
----
 
 ![Diagramme de classe Exo 1 drawio](https://github.com/user-attachments/assets/56d98539-aa47-4a79-accd-0112bc6d7b12)
 
