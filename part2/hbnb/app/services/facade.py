@@ -57,14 +57,21 @@ class HBnBFacade:
         user = self.user_repo.get(user_id)
         if not user:
             return None
-        new_email = updated_data['email']
-        self._validate_email(new_email)
-        existing = self.get_user_by_email(new_email)
-        if existing and existing.id != user_id:
-            raise ValueError("Email already registered by another user")
-        user.first_name = updated_data['first_name']
-        user.last_name = updated_data['last_name']
-        user.email = new_email
+
+        # Mise à jour partielle
+        if 'email' in updated_data:
+            self._validate_email(updated_data['email'])
+            existing = self.get_user_by_email(updated_data['email'])
+            if existing and existing.id != user_id:
+                raise ValueError("Email already registered by another user")
+            user.email = updated_data['email']
+
+        if 'first_name' in updated_data:
+            user.first_name = updated_data['first_name']
+
+        if 'last_name' in updated_data:
+            user.last_name = updated_data['last_name']
+
         user.updated_at = self.user_repo._now()
         return UserResponseSchema(**user.__dict__).model_dump(mode="json")
 
