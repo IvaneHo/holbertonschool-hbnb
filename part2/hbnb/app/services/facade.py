@@ -1,9 +1,11 @@
 from app.models.user import User
 from app.models.place import Place
 from app.models.amenity import Amenity
+from app.models.review import Review
 from app.persistence.repository import InMemoryRepository
 from app.schemas.user import UserResponseSchema
 from app.schemas.place import PlaceResponseSchema
+from app.schemas.review import ReviewResponseSchema
 from pydantic import BaseModel, EmailStr, ValidationError
 
 
@@ -11,11 +13,17 @@ class EmailValidator(BaseModel):
     email: EmailStr
 
 
+class ReviewValidator(BaseModel):
+    text: str
+    rating: int
+
+
 class HBnBFacade:
     def __init__(self):
         self.user_repo = InMemoryRepository()
         self.place_repo = InMemoryRepository()
         self.amenity_repo = InMemoryRepository()
+        self.review_repo = InMemoryRepository()
 
     # === USER LOGIC ===
     def _validate_email(self, email: str):
@@ -58,7 +66,6 @@ class HBnBFacade:
         if not user:
             return None
 
-        # Mise à jour partielle
         if 'email' in updated_data:
             self._validate_email(updated_data['email'])
             existing = self.get_user_by_email(updated_data['email'])
@@ -147,3 +154,75 @@ class HBnBFacade:
         place.updated_at = self.place_repo._now()
 
         return PlaceResponseSchema.from_place(place).model_dump(mode="json")
+
+    # === REVIEW LOGIC ===
+    def create_review(self, review_data):
+        try:
+            ReviewValidator(**review_data)
+        except ValidationError:
+            raise ValueError("Invalid review input data")
+
+        if not (1 <= review_data['rating'] <= 5):
+            raise ValueError("Rating must be between 1 and 5")
+
+        user = self.user_repo.get(review_data['user_id'])
+        if not user:
+            raise ValueError("User not found")
+
+        place = self.place_repo.get(review_data['place_id'])
+        if not place:
+            raise ValueError("Place not found")
+
+        review = Review(**review_data)
+        self.review_repo.add(review)
+        return ReviewResponseSchema(**review.__dict__).model_dump(mode="json")
+
+    def get_review(self, review_id):
+        review = self.review_repo.get(review_id)
+        if not review:
+            return None
+        return ReviewResponseSchema(**review.__dict__).model_dump(mode="json")
+
+    def get_all_reviews(self):
+        result = []
+        for r in self.review_repo.get_all():
+            try:
+                result.append(ReviewResponseSchema(**r.__dict__).model_dump(mode="json"))
+            except ValidationError:
+                continue
+        return result
+
+    def get_reviews_by_place(self, place_id):
+        if not self.place_repo.get(place_id):
+            return None
+        result = []
+        for r in self.review_repo.get_all():
+            if r.place_id == place_id:
+                try:
+                    result.append(ReviewResponseSchema(**r.__dict__).model_dump(mode="json"))
+                except ValidationError:
+                    continue
+        return result
+
+    def update_review(self, review_id, review_data):
+        review = self.review_repo.get(review_id)
+        if not review:
+            return None
+
+        if 'text' in review_data:
+            review.text = review_data['text']
+
+        if 'rating' in review_data:
+            if not (1 <= review_data['rating'] <= 5):
+                raise ValueError("Rating must be between 1 and 5")
+            review.rating = review_data['rating']
+
+        review.updated_at = self.review_repo._now()
+        return {"message": "Review updated successfully"}
+
+    def delete_review(self, review_id):
+        review = self.review_repo.get(review_id)
+        if not review:
+            return None
+        self.review_repo.delete(review_id)
+        return {"message": "Review deleted successfully"}

@@ -27,10 +27,12 @@ user_model_response = api.inherit('UserResponse', user_model, {
 
 
 @api.route('/')
+@api.doc(description="Create a new user or retrieve all users.")
 class UserList(Resource):
     @api.expect(user_model, validate=True)
     @api.response(201, 'User successfully created')
     @api.response(400, 'Invalid input')
+    @api.doc(summary="Create user", description="Create a new user with first name, last name, and email.")
     def post(self):
         """Register a new user"""
         try:
@@ -40,6 +42,7 @@ class UserList(Resource):
             return {'error': str(e)}, 400
 
     @api.response(200, 'Users retrieved')
+    @api.doc(summary="List users", description="Get the list of all registered users.")
     def get(self):
         """Retrieve all users"""
         users = facade.get_all_users()
@@ -47,9 +50,11 @@ class UserList(Resource):
 
 
 @api.route('/<string:user_id>')
+@api.doc(params={'user_id': 'The ID of the user'})
 class UserResource(Resource):
     @api.response(200, 'User found')
     @api.response(404, 'User not found')
+    @api.doc(summary="Get user", description="Retrieve details of a user by their ID.")
     def get(self, user_id):
         """Get user by ID"""
         user = facade.get_user(user_id)
@@ -61,6 +66,7 @@ class UserResource(Resource):
     @api.response(200, 'User updated')
     @api.response(404, 'User not found')
     @api.response(400, 'Validation error')
+    @api.doc(summary="Update user", description="Update one or more user fields by ID (partial update allowed).")
     def put(self, user_id):
         """Update user by ID (partial update allowed)"""
         try:
