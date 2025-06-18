@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, ValidationError
 from app.models.user import User
 from app.models.place import Place
 from app.models.amenity import Amenity
+from app.schemas.amenity import AmenityResponseSchema
 from app.models.review import Review
 from app.persistence.repository import InMemoryRepository
 from app.schemas.user import UserResponseSchema
@@ -23,7 +24,6 @@ class HBnBFacade:
         self.review_repo = InMemoryRepository()
 
     # === USER LOGIC ===
-
     def _validate_email(self, email: str):
         try:
             EmailValidator(email=email)
@@ -81,7 +81,6 @@ class HBnBFacade:
         return UserResponseSchema(**user.__dict__).model_dump(mode="json")
 
     # === PLACE LOGIC ===
-
     def _validate_place_data(self, data):
         if data['price'] < 0:
             raise ValueError("Price must be non-negative")
@@ -98,13 +97,20 @@ class HBnBFacade:
             raise ValueError("Owner not found")
 
         amenities = []
-        for amenity_id in place_data['amenities']:
+        for amenity_id in place_data.get('amenities', []):
             amenity = self.amenity_repo.get(amenity_id)
             if not amenity:
                 raise ValueError(f"Amenity with id {amenity_id} not found")
             amenities.append(amenity)
 
-        place = Place(**place_data)
+        place = Place(
+            title=place_data['title'],
+            description=place_data.get('description', ""),
+            price=place_data['price'],
+            latitude=place_data['latitude'],
+            longitude=place_data['longitude'],
+            owner=owner
+        )
         place.amenities = amenities
         self.place_repo.add(place)
 
@@ -137,7 +143,7 @@ class HBnBFacade:
             raise ValueError("Owner not found")
 
         amenities = []
-        for amenity_id in place_data['amenities']:
+        for amenity_id in place_data.get('amenities', []):
             amenity = self.amenity_repo.get(amenity_id)
             if not amenity:
                 raise ValueError(f"Amenity with id {amenity_id} not found")
@@ -148,14 +154,13 @@ class HBnBFacade:
         place.price = place_data['price']
         place.latitude = place_data['latitude']
         place.longitude = place_data['longitude']
-        place.owner_id = place_data['owner_id']
+        place.owner = owner
         place.amenities = amenities
         place.updated_at = self.place_repo._now()
 
         return PlaceResponseSchema.from_place(place).model_dump(mode="json")
 
     # === REVIEW LOGIC ===
-
     def _serialize_review(self, review):
         return ReviewResponseSchema(
             id=review.id,
@@ -244,7 +249,6 @@ class HBnBFacade:
         return {"message": "Review deleted successfully"}
 
     # === AMENITY LOGIC ===
-
     def create_amenity(self, amenity_data):
         if 'name' not in amenity_data or not amenity_data['name'].strip():
             raise ValueError("Amenity 'name' is required.")
@@ -258,11 +262,21 @@ class HBnBFacade:
     def get_all_amenities(self):
         return self.amenity_repo.get_all()
 
-    def update_amenity(self, amenity_id, amenity_data):
-        amenity = self.amenity_repo.get(amenity_id)
-        if not amenity:
-            return None
-        if 'name' in amenity_data:
-            amenity.name = amenity_data['name']
-        amenity.updated_at = self.amenity_repo._now()
-        return amenity
+   
+def update_amenity(self, amenity_id, amenity_data):
+    amenity = self.amenity_repo.get(amenity_id)
+    if not amenity:
+        return None
+
+    if 'name' in amenity_data:
+        if not amenity_data['name'].strip():
+            raise ValueError("Amenity 'name' cannot be empty.")
+        amenity.name = amenity_data['name']
+
+    amenity.updated_at = self.amenity_repo._now()
+    return AmenityResponseSchema(
+        id=amenity.id,
+        name=amenity.name,
+        created_at=amenity.created_at,
+        updated_at=amenity.updated_at
+    ).model_dump(mode="json")
