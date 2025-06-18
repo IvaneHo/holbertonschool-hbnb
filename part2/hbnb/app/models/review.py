@@ -11,5 +11,13 @@ class Review(BaseModel):
 
         self.text = text
         self.rating = rating
-        self.place = place  # objet Place
-        self.user = user    # objet User
+        self.place = place  # Objet Place
+        self.user = user    # Objet User
+
+    @property
+    def place_id(self):
+        return self.place.id if self.place else None
+
+    @property
+    def user_id(self):
+        return self.user.id if self.user else None

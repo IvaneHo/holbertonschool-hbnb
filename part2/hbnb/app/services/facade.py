@@ -26,6 +26,7 @@ class HBnBFacade:
         self.review_repo = InMemoryRepository()
 
     # === USER LOGIC ===
+
     def _validate_email(self, email: str):
         try:
             EmailValidator(email=email)
@@ -83,6 +84,7 @@ class HBnBFacade:
         return UserResponseSchema(**user.__dict__).model_dump(mode="json")
 
     # === PLACE LOGIC ===
+
     def _validate_place_data(self, data):
         if data['price'] < 0:
             raise ValueError("Price must be non-negative")
@@ -156,6 +158,18 @@ class HBnBFacade:
         return PlaceResponseSchema.from_place(place).model_dump(mode="json")
 
     # === REVIEW LOGIC ===
+
+    def _serialize_review(self, review):
+        return ReviewResponseSchema(
+            id=review.id,
+            text=review.text,
+            rating=review.rating,
+            user_id=review.user_id,
+            place_id=review.place_id,
+            created_at=review.created_at,
+            updated_at=review.updated_at
+        ).model_dump(mode="json")
+
     def create_review(self, review_data):
         try:
             ReviewValidator(**review_data)
@@ -173,21 +187,26 @@ class HBnBFacade:
         if not place:
             raise ValueError("Place not found")
 
-        review = Review(**review_data)
+        review = Review(
+            text=review_data['text'],
+            rating=review_data['rating'],
+            user=user,
+            place=place
+        )
         self.review_repo.add(review)
-        return ReviewResponseSchema(**review.__dict__).model_dump(mode="json")
+        return self._serialize_review(review)
 
     def get_review(self, review_id):
         review = self.review_repo.get(review_id)
         if not review:
             return None
-        return ReviewResponseSchema(**review.__dict__).model_dump(mode="json")
+        return self._serialize_review(review)
 
     def get_all_reviews(self):
         result = []
         for r in self.review_repo.get_all():
             try:
-                result.append(ReviewResponseSchema(**r.__dict__).model_dump(mode="json"))
+                result.append(self._serialize_review(r))
             except ValidationError:
                 continue
         return result
@@ -199,7 +218,7 @@ class HBnBFacade:
         for r in self.review_repo.get_all():
             if r.place_id == place_id:
                 try:
-                    result.append(ReviewResponseSchema(**r.__dict__).model_dump(mode="json"))
+                    result.append(self._serialize_review(r))
                 except ValidationError:
                     continue
         return result

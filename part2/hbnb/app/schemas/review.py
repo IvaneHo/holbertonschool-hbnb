@@ -1,11 +1,14 @@
-from pydantic import BaseModel, conint # type: ignore
+from pydantic import BaseModel, Field
+from typing import Annotated
 from datetime import datetime
+
 
 class ReviewSchema(BaseModel):
     text: str
-    rating: conint(ge=1, le=5) # type: ignore
-    place_id: str
+    rating: Annotated[int, Field(ge=1, le=5)]
     user_id: str
+    place_id: str
+
 
 class ReviewResponseSchema(ReviewSchema):
     id: str
