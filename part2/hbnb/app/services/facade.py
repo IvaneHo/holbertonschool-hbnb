@@ -1,3 +1,4 @@
+from pydantic import BaseModel, EmailStr, ValidationError
 from app.models.user import User
 from app.models.place import Place
 from app.models.amenity import Amenity
@@ -6,17 +7,13 @@ from app.persistence.repository import InMemoryRepository
 from app.schemas.user import UserResponseSchema
 from app.schemas.place import PlaceResponseSchema
 from app.schemas.review import ReviewResponseSchema
-from pydantic import BaseModel, EmailStr, ValidationError
-
 
 class EmailValidator(BaseModel):
     email: EmailStr
 
-
 class ReviewValidator(BaseModel):
     text: str
     rating: int
-
 
 class HBnBFacade:
     def __init__(self):
@@ -245,3 +242,27 @@ class HBnBFacade:
             return None
         self.review_repo.delete(review_id)
         return {"message": "Review deleted successfully"}
+
+    # === AMENITY LOGIC ===
+
+    def create_amenity(self, amenity_data):
+        if 'name' not in amenity_data or not amenity_data['name'].strip():
+            raise ValueError("Amenity 'name' is required.")
+        amenity = Amenity(**amenity_data)
+        self.amenity_repo.add(amenity)
+        return amenity
+
+    def get_amenity(self, amenity_id):
+        return self.amenity_repo.get(amenity_id)
+
+    def get_all_amenities(self):
+        return self.amenity_repo.get_all()
+
+    def update_amenity(self, amenity_id, amenity_data):
+        amenity = self.amenity_repo.get(amenity_id)
+        if not amenity:
+            return None
+        if 'name' in amenity_data:
+            amenity.name = amenity_data['name']
+        amenity.updated_at = self.amenity_repo._now()
+        return amenity
