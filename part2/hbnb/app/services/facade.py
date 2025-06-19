@@ -23,8 +23,12 @@ from app.schemas.amenity import AmenitySchema, AmenityResponseSchema
 # --------------------------------------------------------------------------- #
 #                 Validateurs ponctuels pour e-mail et Review                 #
 # --------------------------------------------------------------------------- #
+
+# Schéma temporaire pour valider les emails via Pydantic
 class _EmailValidator(BaseModel):
     email: EmailStr
+
+# Schéma temporaire pour valider un avis minimal
 
 
 class _ReviewValidator(BaseModel):
@@ -39,14 +43,17 @@ class HBnBFacade:
     """Couche métier unique pour l’API – évite la logique dans les routes."""
 
     def __init__(self) -> None:
+        # Repositories en mémoire (simulent une base de données)
         self.user_repo = InMemoryRepository()
         self.place_repo = InMemoryRepository()
         self.amenity_repo = InMemoryRepository()
         self.review_repo = InMemoryRepository()
 
     # ----------------------------- UTILITAIRES ----------------------------- #
+
     @staticmethod
     def _now() -> datetime:
+        # Retourne l'heure actuelle
         return datetime.now()
 
     def _validate_email(self, email: str) -> None:
@@ -59,7 +66,9 @@ class HBnBFacade:
             raise ValueError("invalid email format")
 
     # ------------------------------ UTILISATEUR ----------------------------- #
+
     def create_user(self, data: dict) -> dict:
+        # Création d’un utilisateur avec validation d’unicité de l’e-mail
         self._validate_email(data["email"])
         if self.get_user_by_email(data["email"]):
             raise ValueError("email already registered")
@@ -69,24 +78,29 @@ class HBnBFacade:
         return UserResponseSchema(**user.__dict__).model_dump(mode="json")
 
     def get_user(self, user_id: str) -> Optional[dict]:
+        # Récupère un utilisateur par son ID
         user = self.user_repo.get(user_id)
         if not user:
             return None
         return UserResponseSchema(**user.__dict__).model_dump(mode="json")
 
     def get_user_by_email(self, email: str) -> Optional[User]:
+        # Recherche un utilisateur par email
         return self.user_repo.get_by_attribute("email", email)
 
     def get_all_users(self) -> List[dict]:
+        # Retourne tous les utilisateurs valides
         res = []
         for u in self.user_repo.get_all():
             try:
-                res.append(UserResponseSchema(**u.__dict__).model_dump(mode="json"))
+                res.append(UserResponseSchema(
+                    **u.__dict__).model_dump(mode="json"))
             except ValidationError:
                 continue
         return res
 
     def update_user(self, user_id: str, payload: dict) -> Optional[dict]:
+        # Mise à jour des infos d’un utilisateur
         user = self.user_repo.get(user_id)
         if not user:
             return None
@@ -107,8 +121,10 @@ class HBnBFacade:
         return UserResponseSchema(**user.__dict__).model_dump(mode="json")
 
     # -------------------------------- PLACE -------------------------------- #
+
     @staticmethod
     def _validate_place(data: dict) -> None:
+        # Valide les coordonnées et le prix d’un lieu
         if data["price"] < 0:
             raise ValueError("price must be non-negative")
         if not (-90 <= data["latitude"] <= 90):
@@ -117,6 +133,7 @@ class HBnBFacade:
             raise ValueError("longitude must be between -180 and 180")
 
     def create_place(self, data: dict) -> dict:
+        # Création d’un lieu avec ses amenities
         self._validate_place(data)
 
         owner = self.user_repo.get(data["owner_id"])
@@ -132,7 +149,7 @@ class HBnBFacade:
             owner=owner,
         )
 
-        # Récupération/validation des amenities fournis
+        # Ajout des amenities (validation incluse)
         amenity_objs: List[Amenity] = []
         for amenity_id in data.get("amenities", []):
             amenity = self.amenity_repo.get(amenity_id)
@@ -154,7 +171,9 @@ class HBnBFacade:
         res = []
         for p in self.place_repo.get_all():
             try:
-                res.append(PlaceResponseSchema.from_place(p).model_dump(mode="json"))
+                res.append(
+                    PlaceResponseSchema.from_place(p).model_dump(
+                        mode="json"))
             except ValidationError:
                 continue
         return res
@@ -176,7 +195,6 @@ class HBnBFacade:
         place.longitude = data["longitude"]
         place.owner = owner
 
-        # amenities
         new_amenities: List[Amenity] = []
         for amenity_id in data.get("amenities", []):
             amenity = self.amenity_repo.get(amenity_id)
@@ -189,7 +207,9 @@ class HBnBFacade:
         return PlaceResponseSchema.from_place(place).model_dump(mode="json")
 
     # -------------------------------- REVIEW ------------------------------- #
+
     def _serialize_review(self, r: Review) -> dict:
+        # Transforme un objet Review en dictionnaire JSON-ready
         return ReviewResponseSchema(
             id=r.id,
             text=r.text,
@@ -201,6 +221,7 @@ class HBnBFacade:
         ).model_dump(mode="json")
 
     def create_review(self, data: dict) -> dict:
+        # Création d’un avis avec validation utilisateur et lieu
         try:
             _ReviewValidator(**data)
         except ValidationError:
@@ -236,7 +257,11 @@ class HBnBFacade:
     def get_reviews_by_place(self, place_id: str) -> Optional[List[dict]]:
         if not self.place_repo.get(place_id):
             return None
-        return [self._serialize_review(r) for r in self.review_repo.get_all() if r.place_id == place_id]
+        return [
+            self._serialize_review(r)
+            for r in self.review_repo.get_all()
+            if r.place_id == place_id
+        ]
 
     def update_review(self, review_id: str, data: dict) -> Optional[dict]:
         r = self.review_repo.get(review_id)
@@ -258,6 +283,7 @@ class HBnBFacade:
         return {"message": "review deleted successfully"}
 
     # -------------------------------- AMENITY ------------------------------ #
+
     def create_amenity(self, data: dict) -> dict:
         """Crée un amenity – message d’erreur doit contenir *name* pour les tests."""
         try:
@@ -300,7 +326,6 @@ class HBnBFacade:
         if not amenity:
             return None
 
-        # Vérifie que le champ name est bien présent et non vide
         name = data.get("name")
         if not name or not name.strip():
             raise ValueError("name is required (max 50 characters)")
@@ -321,6 +346,5 @@ class HBnBFacade:
         ).model_dump(mode="json")
 
 
-
-
-facade = HBnBFacade()  # 👈 instance unique globale
+# Instance globale utilisée par les routes
+facade = HBnBFacade()
