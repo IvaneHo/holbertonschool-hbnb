@@ -14,7 +14,7 @@ It focuses on designing a RESTful API using Flask, combined with a clean busines
 
     - **Façade** to encapsulate all business logic.
 
-📁 Project Structure
+ **Project Structure**
 
 ```plaintext
 hbnb/
