@@ -1,10 +1,10 @@
 from flask_restx import Namespace, Resource
 from flask import request
-from app.services.facade import HBnBFacade
+from app.services.facade import facade
 
 api = Namespace("amenities", path="/api/v1/amenities", description="Amenity operations")
 
-facade = HBnBFacade()
+
 
 @api.route("/")
 class AmenityListResource(Resource):

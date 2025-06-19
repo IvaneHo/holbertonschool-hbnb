@@ -1,18 +1,32 @@
 from pydantic import BaseModel, condecimal, constr, conlist # type: ignore
 from typing import Optional, List
 from datetime import datetime
+from app.models.place import Place
 
-class PlaceSchema(BaseModel):
-    title: constr(strip_whitespace=True, max_length=100) # type: ignore
-    description: Optional[str] = ""
-    price: condecimal(gt=0) # type: ignore
+
+class PlaceResponseSchema(BaseModel):
+    id: str
+    title: str
+    description: str
+    price: int
     latitude: float
     longitude: float
-    owner_id: str  # id du user
+    owner_id: str
+    amenities: List[str]
+    created_at: str
+    updated_at: str
 
-class PlaceResponseSchema(PlaceSchema):
-    id: str
-    created_at: datetime
-    updated_at: datetime
-    amenities: List[str] = []
-    reviews: List[str] = []
+    @classmethod
+    def from_place(cls, place: Place) -> "PlaceResponseSchema":
+        return cls(
+            id=place.id,
+            title=place.title,
+            description=place.description,
+            price=place.price,
+            latitude=place.latitude,
+            longitude=place.longitude,
+            owner_id=place.owner.id,
+            amenities=[a.id for a in place.amenities],
+            created_at=str(place.created_at),
+            updated_at=str(place.updated_at),
+        )

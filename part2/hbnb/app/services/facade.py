@@ -321,3 +321,6 @@ class HBnBFacade:
         ).model_dump(mode="json")
 
 
+
+
+facade = HBnBFacade()  # 👈 instance unique globale
