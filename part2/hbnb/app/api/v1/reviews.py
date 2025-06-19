@@ -74,7 +74,7 @@ class ReviewItem(Resource):
             updated = facade.update_review(review_id, api.payload)
             if not updated:
                 return {'error': 'Review not found'}, 404
-            return updated
+            return facade.get_review(review_id), 200
         except Exception as e:
             return {'error': str(e)}, 400
 
@@ -87,3 +87,18 @@ class ReviewItem(Resource):
         if not result:
             return {'error': 'Review not found'}, 404
         return result
+
+
+
+@api.route('/by_place/<string:place_id>')
+@api.doc(params={"place_id": "ID of the place"})
+class ReviewsByPlace(Resource):
+    @api.marshal_list_with(review_response)
+    @api.response(200, 'List of reviews for the given place retrieved')
+    @api.response(404, 'Place not found or no reviews')
+    def get(self, place_id):
+        """Get reviews by place ID"""
+        reviews = facade.get_reviews_by_place(place_id)
+        if reviews is None:
+            return {'error': 'Place not found'}, 404
+        return reviews, 200
