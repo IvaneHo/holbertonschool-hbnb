@@ -10,8 +10,8 @@ from app.services.amenity_service import AmenityService
 from app.services.review_service import ReviewService
 from app.persistence.sqlalchemy_repository import SQLAlchemyRepository
 
-from app.models.user import User
-from app.models.place import Place
+from app.models.user import User      # SQLAlchemy
+from app.models.place import PlaceORM # <-- ICI LE MODÈLE ORM
 from app.models.amenity import Amenity
 from app.models.review import Review
 
@@ -19,9 +19,9 @@ class HBnBFacade:
     """Couche d'accès unique aux services métier utilisée par les routes API."""
 
     def __init__(self):
-        # Initialisation des repositories SQLAlchemy (pas in-memory !)
+        # Initialisation des repositories SQLAlchemy (ORM, pas métier)
         self.user_repo = SQLAlchemyRepository(User)
-        self.place_repo = SQLAlchemyRepository(Place)
+        self.place_repo = SQLAlchemyRepository(PlaceORM)  # <-- C'est ça qui change tout !
         self.amenity_repo = SQLAlchemyRepository(Amenity)
         self.review_repo = SQLAlchemyRepository(Review)
 
@@ -48,6 +48,9 @@ class HBnBFacade:
 
     def update_user(self, user_id: str, data: dict) -> Optional[dict]:
         return self.user_service.update_user(user_id, data)
+
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        return self.user_service.get_user_by_email(email)
 
     # -------------------------------- PLACE -------------------------------- #
 
@@ -96,26 +99,6 @@ class HBnBFacade:
 
     def delete_review(self, review_id: str) -> Optional[dict]:
         return self.review_service.delete_review(review_id)
-
-
-
-    # ------------------------------ UTILISATEUR ----------------------------- #
-
-    def create_user(self, data: dict) -> dict:
-        return self.user_service.create_user(data)
-
-    def get_user(self, user_id: str) -> Optional[dict]:
-        return self.user_service.get_user(user_id)
-
-    def get_all_users(self) -> List[dict]:
-        return self.user_service.get_all_users()
-
-    def update_user(self, user_id: str, data: dict) -> Optional[dict]:
-        return self.user_service.update_user(user_id, data)
-
-    def get_user_by_email(self, email: str) -> Optional[User]:
-        return self.user_service.get_user_by_email(email)
-
 
 # Instance globale utilisée par les routes
 facade = HBnBFacade()

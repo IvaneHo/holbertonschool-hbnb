@@ -1,18 +1,19 @@
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.facade import facade
 
 api = Namespace("reviews", description="Review operations")
 
-# === MODELS ===
+def get_current_user_id():
+    ident = get_jwt_identity()
+    return ident if isinstance(ident, str) else ident.get("id")
 
 review_model = api.model(
     "ReviewInput",
     {
         "text": fields.String(required=True, description="Review text"),
-        "rating": fields.Integer(
-            required=True, description="Rating from 1 to 5", min=1, max=5
-        ),
-        "user_id": fields.String(required=True, description="ID of the author"),
+        "rating": fields.Integer(required=True, description="Rating from 1 to 5", min=1, max=5),
+        # user_id jamais demandé côté client !
         "place_id": fields.String(required=True, description="ID of the place"),
     },
 )
@@ -21,9 +22,7 @@ review_update_model = api.model(
     "ReviewUpdate",
     {
         "text": fields.String(description="Updated review text"),
-        "rating": fields.Integer(
-            description="Updated rating from 1 to 5", min=1, max=5
-        ),
+        "rating": fields.Integer(description="Updated rating from 1 to 5", min=1, max=5),
     },
 )
 
@@ -40,33 +39,45 @@ review_response = api.model(
     },
 )
 
-
 @api.route("/")
 class ReviewList(Resource):
     @api.marshal_list_with(review_response)
     def get(self):
-        """List all reviews"""
+        """List all reviews (public)"""
         return facade.get_all_reviews()
 
     @api.expect(review_model, validate=True)
     @api.marshal_with(review_response, code=201)
     @api.response(201, "Review successfully created")
     @api.response(400, "Invalid input data")
+    @jwt_required()
     def post(self):
-        """Create a new review"""
+        """Create a new review (auth, not on own place, not twice)"""
+        user_id = get_current_user_id()
+        data = api.payload.copy()
+        data["user_id"] = user_id  # Toujours injecté côté serveur
+
+        # --- Règles métier côté API (doivent exister aussi côté service/facade) ---
+        place = facade.get_place(data["place_id"])
+        if not place:
+            return {"error": "Place not found"}, 400
+        if place["owner_id"] == user_id:
+            return {"error": "You cannot review your own place"}, 400
+        for review in facade.get_reviews_by_place(data["place_id"]):
+            if review["user_id"] == user_id:
+                return {"error": "You have already reviewed this place"}, 400
+
         try:
-            return facade.create_review(api.payload), 201
+            return facade.create_review(data), 201
         except Exception as e:
             return {"error": str(e)}, 400
 
-
 @api.route("/<string:review_id>")
 class ReviewItem(Resource):
-    # ⚠️ NE PAS mettre @api.marshal_with ici sinon tu as les champs à None quand review absente !
     @api.response(200, "Review retrieved successfully")
     @api.response(404, "Review not found")
     def get(self, review_id):
-        """Get review by ID"""
+        """Get review by ID (public)"""
         review = facade.get_review(review_id)
         if not review or not review.get("id"):
             return {"error": "Review not found"}, 404
@@ -76,30 +87,40 @@ class ReviewItem(Resource):
     @api.response(200, "Review updated successfully")
     @api.response(400, "Invalid update data")
     @api.response(404, "Review not found")
+    @api.response(403, "Unauthorized action")
+    @jwt_required()
     def put(self, review_id):
-        """Update review"""
-        review_obj = facade.get_review(review_id)
-        if not review_obj or not review_obj.get("id"):
+        """Update review (auth & ownership required)"""
+        user_id = get_current_user_id()
+        review = facade.get_review(review_id)
+        if not review or not review.get("id"):
             return {"error": "Review not found"}, 404
+        if review["user_id"] != user_id:
+            return {"error": "Unauthorized action"}, 403
+
         try:
             updated = facade.update_review(review_id, api.payload)
-            if not updated:
-                return {"error": "Review not found"}, 404
-            # On renvoie bien l'objet complet mis à jour, mais PAS de marshal_with pour l’erreur
-            return facade.get_review(review_id), 200
+            return updated, 200
         except Exception as e:
             return {"error": str(e)}, 400
 
     @api.response(200, "Review deleted successfully")
     @api.response(404, "Review not found")
+    @api.response(403, "Unauthorized action")
+    @jwt_required()
     def delete(self, review_id):
-        """Delete review"""
+        """Delete review (auth & ownership required)"""
+        user_id = get_current_user_id()
         review = facade.get_review(review_id)
         if not review or not review.get("id"):
             return {"error": "Review not found"}, 404
-        result = facade.delete_review(review_id)
-        return result, 200
-
+        if review["user_id"] != user_id:
+            return {"error": "Unauthorized action"}, 403
+        try:
+            result = facade.delete_review(review_id)
+            return result, 200
+        except Exception as e:
+            return {"error": str(e)}, 400
 
 @api.route("/by_place/<string:place_id>")
 class ReviewsByPlace(Resource):
@@ -107,7 +128,7 @@ class ReviewsByPlace(Resource):
     @api.response(200, "List of reviews for the given place retrieved")
     @api.response(404, "Place not found or no reviews")
     def get(self, place_id):
-        """Get reviews by place ID"""
+        """Get reviews by place ID (public)"""
         try:
             return facade.get_reviews_by_place(place_id), 200
         except Exception as e:

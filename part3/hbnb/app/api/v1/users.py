@@ -1,10 +1,10 @@
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.facade import facade
 
 # Namespace pour les utilisateurs
 api = Namespace("users", description="User operations")
 
-# Modèle de base pour la création d’un utilisateur (POST)
 user_create_model = api.model(
     "UserCreate",
     {
@@ -15,18 +15,16 @@ user_create_model = api.model(
     },
 )
 
-# Modèle complet sans password, utilisé pour PUT/PATCH (update)
 user_update_model = api.model(
     "UserUpdate",
     {
         "first_name": fields.String(description="First name"),
         "last_name": fields.String(description="Last name"),
-        "email": fields.String(description="Email address"),
-        "password": fields.String(description="New password (min 8 caractères)", min_length=8),
+        "email": fields.String(description="Email address"),  # Interdit par la logique
+        "password": fields.String(description="New password (min 8 caractères)", min_length=8),  # Interdit aussi
     },
 )
 
-# Modèle de réponse enrichie (jamais de password)
 user_model_response = api.model(
     "UserResponse",
     {
@@ -41,16 +39,11 @@ user_model_response = api.model(
 )
 
 @api.route("/")
-@api.doc(description="Create a new user or retrieve all users.")
 class UserList(Resource):
     @api.expect(user_create_model, validate=True)
     @api.marshal_with(user_model_response)
     @api.response(201, "User successfully created")
     @api.response(400, "Invalid input")
-    @api.doc(
-        summary="Create user",
-        description="Register a new user. Password must be at least 8 characters.",
-    )
     def post(self):
         """Register a new user (password required)"""
         try:
@@ -61,7 +54,6 @@ class UserList(Resource):
 
     @api.marshal_list_with(user_model_response)
     @api.response(200, "Users retrieved")
-    @api.doc(summary="List users", description="Get the list of all registered users.")
     def get(self):
         """Retrieve all users"""
         return facade.get_all_users(), 200
@@ -72,7 +64,6 @@ class UserResource(Resource):
     @api.marshal_with(user_model_response)
     @api.response(200, "User found")
     @api.response(404, "User not found")
-    @api.doc(summary="Get user", description="Retrieve details of a user by their ID.")
     def get(self, user_id):
         """Get user by ID"""
         user = facade.get_user(user_id)
@@ -85,24 +76,64 @@ class UserResource(Resource):
     @api.response(200, "User updated")
     @api.response(404, "User not found")
     @api.response(400, "Validation error")
-    @api.doc(
-        summary="Update user",
-        description="Update one or more user fields by ID. (Partial update allowed, including password)",
-    )
+    @api.response(403, "Unauthorized action")
+    @jwt_required()
     def put(self, user_id):
-        """Update user by ID (partial update, password allowed)"""
+        """
+        Update user by ID (user only, can't change email or password)
+        """
+        # Vérifie l’identité du user connecté
+        jwt_user = get_jwt_identity()
+        if isinstance(jwt_user, dict):
+            jwt_user = jwt_user.get("id")
+        if user_id != jwt_user:
+            return {"error": "Unauthorized action"}, 403
+
+        payload = api.payload.copy()
+        if "email" in payload or "password" in payload:
+            return {"error": "You cannot modify email or password"}, 400
+
         user_exists = facade.get_user(user_id)
         if not user_exists:
-            api.abort(404, "User not found")
+            return {"error": "User not found"}, 404
         try:
-            user = facade.update_user(user_id, api.payload)
+            user = facade.update_user(user_id, payload)
             return user, 200
         except Exception as e:
-            api.abort(400, str(e))
+            return {"error": str(e)}, 400
+
+    @api.expect(user_update_model, validate=True)
+    @api.marshal_with(user_model_response)
+    @api.response(200, "User updated (PATCH)")
+    @api.response(404, "User not found")
+    @api.response(400, "Validation error")
+    @api.response(403, "Unauthorized action")
+    @jwt_required()
+    def patch(self, user_id):
+        """
+        Patch user by ID (user only, can't change email or password)
+        """
+        jwt_user = get_jwt_identity()
+        if isinstance(jwt_user, dict):
+            jwt_user = jwt_user.get("id")
+        if user_id != jwt_user:
+            return {"error": "Unauthorized action"}, 403
+
+        payload = api.payload.copy()
+        if "email" in payload or "password" in payload:
+            return {"error": "You cannot modify email or password"}, 400
+
+        user_exists = facade.get_user(user_id)
+        if not user_exists:
+            return {"error": "User not found"}, 404
+        try:
+            user = facade.update_user(user_id, payload)
+            return user, 200
+        except Exception as e:
+            return {"error": str(e)}, 400
 
 def register_user_models(api):
     """Force l'enregistrement Swagger des modèles utilisateurs"""
     api.models[user_create_model.name] = user_create_model
     api.models[user_update_model.name] = user_update_model
     api.models[user_model_response.name] = user_model_response
-

@@ -1,36 +1,29 @@
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.facade import facade
 
-# Création du namespace pour les opérations liées aux lieux
 api = Namespace("places", description="Place operations")
 
-# === MODELS ===
+def get_current_user_id():
+    """Gère JWT str ou dict selon la config"""
+    ident = get_jwt_identity()
+    return ident if isinstance(ident, str) else ident.get("id")
 
-# Modèle de données utilisé pour la création d’un lieu (POST)
+# --- MODELS ---
+
 place_model = api.model(
     "Place",
     {
         "title": fields.String(required=True, description="Title of the place"),
         "description": fields.String(description="Description of the place"),
-        "price": fields.Float(
-            required=True, description="Price per night (non-negative)"
-        ),
-        "latitude": fields.Float(
-            required=True, description="Latitude between -90 and 90"
-        ),
-        "longitude": fields.Float(
-            required=True, description="Longitude between -180 and 180"
-        ),
-        "owner_id": fields.String(
-            required=True, description="User ID of the place owner"
-        ),
-        "amenities": fields.List(
-            fields.String, required=True, description="List of Amenity IDs"
-        ),
+        "price": fields.Float(required=True, description="Price per night (non-negative)"),
+        "latitude": fields.Float(required=True, description="Latitude between -90 and 90"),
+        "longitude": fields.Float(required=True, description="Longitude between -180 and 180"),
+        # Pas d'owner_id !
+        "amenities": fields.List(fields.String, required=True, description="List of Amenity IDs"),
     },
 )
 
-# Modèle utilisé pour la mise à jour partielle d’un lieu (PUT)
 place_update_model = api.model(
     "PlaceUpdate",
     {
@@ -39,47 +32,42 @@ place_update_model = api.model(
         "price": fields.Float(description="Price per night (non-negative)"),
         "latitude": fields.Float(description="Latitude between -90 and 90"),
         "longitude": fields.Float(description="Longitude between -180 and 180"),
-        "owner_id": fields.String(description="User ID of the place owner"),
+        # Pas d'owner_id ici non plus !
         "amenities": fields.List(fields.String, description="List of Amenity IDs"),
     },
 )
 
-# === ROUTES ===
-
+# --- ROUTES ---
 
 @api.route("/")
 class PlaceList(Resource):
     @api.expect(place_model, validate=True)
     @api.response(201, "Place successfully created")
     @api.response(400, "Invalid input data")
-    @api.doc(
-        description="Create a new place with validated attributes and related entities"
-    )
+    @api.doc(description="Create a new place (auth required, owner set automatically)")
+    @jwt_required()
     def post(self):
-        """Create a new place"""
+        """Create a new place (owner is always the current user)"""
+        data = api.payload.copy()
+        data["owner_id"] = get_current_user_id()
         try:
-            return facade.create_place(api.payload), 201
+            return facade.create_place(data), 201
         except Exception as e:
             return {"error": str(e)}, 400
 
     @api.response(200, "List of all places retrieved")
-    @api.doc(
-        description="Retrieve the full list of places (with coordinates and titles)"
-    )
+    @api.doc(description="Retrieve the full list of places (public endpoint)")
     def get(self):
-        """Retrieve all places"""
+        """Retrieve all places (public)"""
         return facade.get_all_places(), 200
-
 
 @api.route("/<string:place_id>")
 class PlaceResource(Resource):
     @api.response(200, "Place retrieved successfully")
     @api.response(404, "Place not found")
-    @api.doc(
-        description="Get a place by its ID, including its amenities and owner details"
-    )
+    @api.doc(description="Get a place by its ID (public endpoint)")
     def get(self, place_id):
-        """Get a place by ID"""
+        """Get a place by ID (public)"""
         place = facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
@@ -89,13 +77,22 @@ class PlaceResource(Resource):
     @api.response(200, "Place successfully updated")
     @api.response(404, "Place not found")
     @api.response(400, "Validation error")
-    @api.doc(description="Update one or more fields of a place by its ID")
+    @api.response(403, "Unauthorized action")
+    @api.doc(description="Update a place by its ID. Only the owner can update.")
+    @jwt_required()
     def put(self, place_id):
-        """Update a place by ID"""
+        """Update a place by ID (owner only)"""
+        user_id = get_current_user_id()
+        place = facade.get_place(place_id)
+        if not place:
+            return {"error": "Place not found"}, 404
+        if place["owner_id"] != user_id:
+            return {"error": "Unauthorized action"}, 403
+
+        payload = api.payload.copy()
+        payload.pop("owner_id", None)  # Protection, même si jamais dans Swagger
         try:
-            result = facade.update_place(place_id, api.payload)
-            if not result:
-                return {"error": "Place not found"}, 404
+            result = facade.update_place(place_id, payload)
             return result, 200
         except Exception as e:
             return {"error": str(e)}, 400
