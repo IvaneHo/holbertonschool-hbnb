@@ -98,5 +98,24 @@ class HBnBFacade:
         return self.review_service.delete_review(review_id)
 
 
+
+    # ------------------------------ UTILISATEUR ----------------------------- #
+
+    def create_user(self, data: dict) -> dict:
+        return self.user_service.create_user(data)
+
+    def get_user(self, user_id: str) -> Optional[dict]:
+        return self.user_service.get_user(user_id)
+
+    def get_all_users(self) -> List[dict]:
+        return self.user_service.get_all_users()
+
+    def update_user(self, user_id: str, data: dict) -> Optional[dict]:
+        return self.user_service.update_user(user_id, data)
+
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        return self.user_service.get_user_by_email(email)
+
+
 # Instance globale utilisée par les routes
 facade = HBnBFacade()
