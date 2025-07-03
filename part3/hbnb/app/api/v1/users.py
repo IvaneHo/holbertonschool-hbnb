@@ -1,59 +1,58 @@
 from flask_restx import Namespace, Resource, fields
 from app.services.facade import facade
 
-# Création du namespace pour les opérations liées aux utilisateurs
+# Namespace pour les utilisateurs
 api = Namespace("users", description="User operations")
 
 # Modèle de base pour la création d’un utilisateur (POST)
-user_model_base = api.model(
-    "UserBase",
+user_create_model = api.model(
+    "UserCreate",
     {
-        "first_name": fields.String(required=True, description="First name"),
-        "last_name": fields.String(required=True, description="Last name"),
-        "email": fields.String(required=True, description="Email address"),
+        "first_name": fields.String(required=True, description="First name", default="Jean"),
+        "last_name": fields.String(required=True, description="Last name", default="Degolas"),
+        "email": fields.String(required=True, description="Email address", default="jean.Degolas@elfesuprme.com"),
+        "password": fields.String(required=True, description="User password (min 8 caractères)", min_length=8, default="PAS1233456SVP"),
     },
 )
 
-# Modèle complet, hérite du modèle de base (utilisé pour affichage ou PUT)
-user_model = api.inherit("User", user_model_base, {})
-
-# Modèle utilisé pour les mises à jour partielles (PUT)
-user_partial_model = api.model(
-    "UserPartial",
+# Modèle complet sans password, utilisé pour PUT/PATCH (update)
+user_update_model = api.model(
+    "UserUpdate",
     {
         "first_name": fields.String(description="First name"),
         "last_name": fields.String(description="Last name"),
         "email": fields.String(description="Email address"),
+        "password": fields.String(description="New password (min 8 caractères)", min_length=8),
     },
 )
 
-# Modèle de réponse enrichie avec ID et dates
-user_model_response = api.inherit(
+# Modèle de réponse enrichie (jamais de password)
+user_model_response = api.model(
     "UserResponse",
-    user_model,
     {
         "id": fields.String(description="User ID"),
+        "first_name": fields.String(description="First name"),
+        "last_name": fields.String(description="Last name"),
+        "email": fields.String(description="Email address"),
         "created_at": fields.String(description="Creation date"),
         "updated_at": fields.String(description="Last update"),
         "is_admin": fields.Boolean(description="Admin status"),
     },
 )
 
-
 @api.route("/")
 @api.doc(description="Create a new user or retrieve all users.")
 class UserList(Resource):
-    @api.expect(user_model_base, validate=True)
+    @api.expect(user_create_model, validate=True)
     @api.marshal_with(user_model_response)
     @api.response(201, "User successfully created")
     @api.response(400, "Invalid input")
     @api.doc(
         summary="Create user",
-        description="Create a new user with first name, last name, and email.",
+        description="Register a new user. Password must be at least 8 characters.",
     )
     def post(self):
-        """Register a new user"""
-        # Création d’un nouvel utilisateur à partir des données envoyées
+        """Register a new user (password required)"""
         try:
             user = facade.create_user(api.payload)
             return user, 201
@@ -65,9 +64,7 @@ class UserList(Resource):
     @api.doc(summary="List users", description="Get the list of all registered users.")
     def get(self):
         """Retrieve all users"""
-        # Récupère la liste de tous les utilisateurs enregistrés
         return facade.get_all_users(), 200
-
 
 @api.route("/<string:user_id>")
 @api.doc(params={"user_id": "The ID of the user"})
@@ -78,24 +75,22 @@ class UserResource(Resource):
     @api.doc(summary="Get user", description="Retrieve details of a user by their ID.")
     def get(self, user_id):
         """Get user by ID"""
-        # Recherche un utilisateur par son ID
         user = facade.get_user(user_id)
         if not user:
             api.abort(404, "User not found")
         return user, 200
 
-    @api.expect(user_partial_model, validate=True)
+    @api.expect(user_update_model, validate=True)
     @api.marshal_with(user_model_response)
     @api.response(200, "User updated")
     @api.response(404, "User not found")
     @api.response(400, "Validation error")
     @api.doc(
         summary="Update user",
-        description="Update one or more user fields by ID (partial update allowed).",
+        description="Update one or more user fields by ID. (Partial update allowed, including password)",
     )
     def put(self, user_id):
-        """Update user by ID (partial update allowed)"""
-        # Mise à jour partielle des informations d’un utilisateur
+        """Update user by ID (partial update, password allowed)"""
         user_exists = facade.get_user(user_id)
         if not user_exists:
             api.abort(404, "User not found")
@@ -105,11 +100,9 @@ class UserResource(Resource):
         except Exception as e:
             api.abort(400, str(e))
 
-
 def register_user_models(api):
     """Force l'enregistrement Swagger des modèles utilisateurs"""
-    # Permet d’enregistrer explicitement les modèles pour la doc Swagger
-    api.models[user_model_base.name] = user_model_base
-    api.models[user_model.name] = user_model
-    api.models[user_partial_model.name] = user_partial_model
+    api.models[user_create_model.name] = user_create_model
+    api.models[user_update_model.name] = user_update_model
     api.models[user_model_response.name] = user_model_response
+

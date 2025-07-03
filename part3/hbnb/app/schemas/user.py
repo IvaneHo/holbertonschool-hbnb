@@ -2,62 +2,65 @@ from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime
 
-# Liste des domaines email jetables interdits
-BANNED_DOMAINS = {
-    "mailinator.com",
-    "10minutemail.com",
-    "tempmail.com",
-    "guerrillamail.com",
-    "yopmail.com",
-    "dispostable.com",
-}
 
 
-# Schéma utilisé pour valider les données d’entrée d’un utilisateur
-class UserSchema(BaseModel):
+# Schéma utilisé pour la création d’un utilisateur (avec mot de passe)
+class UserCreateSchema(BaseModel):
     first_name: str  # Prénom requis
-    last_name: str  # Nom requis
-    email: EmailStr  # Email au format valide (grâce à Pydantic)
+    last_name: str   # Nom requis
+    email: EmailStr  # Email valide
+    password: str    # Mot de passe requis
 
     @field_validator("email")
     @classmethod
     def validate_email_domain(cls, value: EmailStr) -> EmailStr:
-        # Valide que l’email contient un domaine correct
         domain = value.split("@")[-1].lower()
         if "." not in domain:
             raise ValueError(
-                "L'email doit contenirunpointdansle domaine (ex: exemple.com)"
+                "L'email doit contenir un point dans le domaine (ex: exemple.com)"
             )
-        if domain in BANNED_DOMAINS:
-            raise ValueError(f"Domaine email interdit : {domain}")
+        
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, value: str) -> str:
+        if len(value) < 8:
+            raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
+        # Tu peux ajouter d'autres règles ici
         return value
 
-
+# Schéma pour la modification (update), mot de passe optionnel
 class UserUpdateSchema(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
+    password: Optional[str] = None  # Peut être changé
 
     @field_validator("email")
     @classmethod
     def validate_email_domain(cls, value: EmailStr) -> EmailStr:
-        # même validation que plus haut
         domain = value.split("@")[-1].lower()
         if "." not in domain:
             raise ValueError("L'email doit contenir un point dans le domaine")
-        if domain in BANNED_DOMAINS:
-            raise ValueError(f"Domaine email interdit : {domain}")
+       
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, value: str) -> str:
+        if value is not None and len(value) < 8:
+            raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
         return value
 
-
-# Schéma enrichi utilisé pour les réponses API (inclut ID, timestamps, etc.)
-class UserResponseSchema(UserSchema):
-    id: Optional[str]  # ID de l'utilisateur
-    created_at: Optional[datetime]  # Date de création
-    updated_at: Optional[datetime]  # Dernière mise à jour
-    is_admin: Optional[bool] = False  # Statut administrateur (facultatif)
+# Schéma enrichi utilisé pour les réponses API (jamais de password !)
+class UserResponseSchema(BaseModel):
+    id: Optional[str]
+    first_name: str
+    last_name: str
+    email: EmailStr
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    is_admin: Optional[bool] = False
 
     class Config:
-        # Permet à Pydantic d’accepter les objets avec attributs comme
-        # `user.first_name`
-        from_attributes = True
+        from_attributes = True  # Permet d'accepter les objets ORM
+

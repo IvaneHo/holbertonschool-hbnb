@@ -1,3 +1,6 @@
 Flask>=2.3,<3.0
 flask-restx>=1.1,<2.0
 pydantic[email]>=2.6,<3.0
+argon2-cffi==23.1.0
+flask_sqlalchemy
+flask-jwt-extended

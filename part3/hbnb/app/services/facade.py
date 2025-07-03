@@ -1,5 +1,5 @@
 """
-Service layer (facade)  centralise toute la logique métier HBnB.
+Service layer (facade) centralise toute la logique métier HBnB.
 """
 
 from typing import List, Optional
@@ -8,18 +8,22 @@ from app.services.user_service import UserService
 from app.services.place_service import PlaceService
 from app.services.amenity_service import AmenityService
 from app.services.review_service import ReviewService
-from app.persistence.repository import InMemoryRepository
+from app.persistence.sqlalchemy_repository import SQLAlchemyRepository
 
+from app.models.user import User
+from app.models.place import Place
+from app.models.amenity import Amenity
+from app.models.review import Review
 
 class HBnBFacade:
-    """Couche d'accès unique aux services métier  utilisée par les routes API."""
+    """Couche d'accès unique aux services métier utilisée par les routes API."""
 
     def __init__(self):
-        # Initialisation des repositories
-        self.user_repo = InMemoryRepository()
-        self.place_repo = InMemoryRepository()
-        self.amenity_repo = InMemoryRepository()
-        self.review_repo = InMemoryRepository()
+        # Initialisation des repositories SQLAlchemy (pas in-memory !)
+        self.user_repo = SQLAlchemyRepository(User)
+        self.place_repo = SQLAlchemyRepository(Place)
+        self.amenity_repo = SQLAlchemyRepository(Amenity)
+        self.review_repo = SQLAlchemyRepository(Review)
 
         # Initialisation des services avec leurs dépendances
         self.user_service = UserService(self.user_repo)

@@ -1,31 +1,39 @@
 from typing import List, Optional
-from datetime import datetime
 from pydantic import BaseModel, EmailStr, ValidationError
+from argon2 import PasswordHasher
 
 from app.models.user import User
 from app.schemas.user import UserResponseSchema, UserUpdateSchema
-from app.persistence.repository import InMemoryRepository
+from app.persistence.sqlalchemy_repository import SQLAlchemyRepository
 
+# Liste des domaines email jetables interdits 
+BANNED_DOMAINS = {
+    "mailinator.com",
+    "10minutemail.com",
+    "tempmail.com",
+    "guerrillamail.com",
+    "yopmail.com",
+    "dispostable.com",
+}
 
 class _EmailValidator(BaseModel):
     email: EmailStr
 
-
 class UserService:
-    def __init__(self, user_repo: InMemoryRepository):
+    def __init__(self, user_repo: SQLAlchemyRepository):
         self.repo = user_repo
-
-    def _now(self) -> datetime:
-        return datetime.now()
+        self.hasher = PasswordHasher()
 
     def _validate_email(self, email: str) -> None:
         try:
             _EmailValidator(email=email)
         except ValidationError:
             raise ValueError("invalid email format")
-
-        if "." not in email.split("@")[-1]:
-            raise ValueError("invalid email format")
+        domain = email.split("@")[-1].lower()
+        if "." not in domain:
+            raise ValueError("invalid email format (no dot in domain)")
+        if domain in BANNED_DOMAINS:
+            raise ValueError(f"Domaine email interdit : {domain}")
 
     def get_user_by_email(self, email: str) -> Optional[User]:
         return self.repo.get_by_attribute("email", email)
@@ -35,8 +43,18 @@ class UserService:
         if self.get_user_by_email(data["email"]):
             raise ValueError("email already registered")
 
-        user = User(**data)
+        password = data.get("password")
+        if not password or not isinstance(password, str) or len(password) < 8:
+            raise ValueError("Password must be at least 8 characters")
+
+        # On hash le password avant stockage
+        user_data = data.copy()
+        user_data["password"] = self.hasher.hash(password)
+        user = User(**user_data)
         self.repo.add(user)
+        # commit explicite pour SQLAlchemy
+        from app import db
+        db.session.commit()
         return UserResponseSchema.model_validate(user).model_dump(mode="json")
 
     def get_user(self, user_id: str) -> Optional[dict]:
@@ -61,22 +79,27 @@ class UserService:
         if not user:
             return None
 
-        # ✅ Validation partielle via Pydantic
         try:
             validated_data = UserUpdateSchema(**payload).model_dump(exclude_unset=True)
         except ValidationError as e:
             raise ValueError(e.errors()[0]["msg"])
 
-        # Vérification de l'email si modifié
+        # Vérifie email si modifié
         if "email" in validated_data:
             self._validate_email(validated_data["email"])
             existing_user = self.get_user_by_email(validated_data["email"])
-            if existing_user and existing_user.id != user_id:
+            if existing_user and str(existing_user.id) != str(user_id):
                 raise ValueError("email already registered")
 
-        # Mise à jour des champs autorisés
         for field, value in validated_data.items():
-            setattr(user, field, value)
+            if field == "password":
+                # Hash du nouveau password si modifié
+                if not isinstance(value, str) or len(value) < 8:
+                    raise ValueError("Password must be at least 8 characters")
+                setattr(user, "password", self.hasher.hash(value))
+            else:
+                setattr(user, field, value)
 
-        user.updated_at = self._now()
+        from app import db
+        db.session.commit()
         return UserResponseSchema.model_validate(user).model_dump(mode="json")

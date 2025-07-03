@@ -1,32 +1,47 @@
-from app.models.base_model import BaseModel
+from app import db
+from argon2 import PasswordHasher
+from datetime import datetime
+import uuid
 
-# Classe représentant un utilisateur de la plateforme
+ph = PasswordHasher()
 
+class User(db.Model):
+    __tablename__ = "users"
 
-class User(BaseModel):
-    def __init__(self, first_name, last_name, email, is_admin=False):
-        # Initialise les champs communs (id, created_at, updated_at)
-        super().__init__()
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(128), unique=True, nullable=False)
+    password = db.Column(db.String(256), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-        # Validation du prénom
+    def __init__(self, first_name, last_name, email, password, is_admin=False):
+        # Validations identiques à avant
         if not first_name or len(first_name) > 50:
             raise ValueError("Le prénom est requis et doit faire max 50 caractères")
-
-        # Validation du nom de famille
         if not last_name or len(last_name) > 50:
             raise ValueError("Le nom est requis et doit faire max 50 caractères")
-
-        # Validation de l'email (doit contenir un '@')
         if not email or "@" not in email:
             raise ValueError("Email invalide")
-
-        # Initialisation des attributs de l'utilisateur
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
-        self.is_admin = is_admin  # Indique si l'utilisateur est administrateur
+        self.is_admin = is_admin
+        self.hash_password(password)
+        # id, created_at, updated_at gérés automatiquement
 
+    def hash_password(self, plain_password):
+        """Hash le mot de passe avec Argon2 et le stocke."""
+        self.password = ph.hash(plain_password)
 
-# Méthode de représentation textuelle d'un objet User
-def __repr__(self):
-    return f"<User {self.id} {self.first_name} {self.last_name} {self.email}>"
+    def verify_password(self, plain_password):
+        """Vérifie si le mot de passe en clair correspond au hash."""
+        try:
+            return ph.verify(self.password, plain_password)
+        except Exception:
+            return False
+
+    def __repr__(self):
+        return f"<User {self.id} {self.first_name} {self.last_name} {self.email}>"
