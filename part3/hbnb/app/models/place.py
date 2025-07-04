@@ -1,7 +1,6 @@
+# === Modèle métier (logique Python, pas relié à SQLAlchemy) ===
 from app.models.base_model import BaseModel
 from typing import List, Optional
-
-# === Modèle métier (logique Python uniquement, pas relié à SQLAlchemy) ===
 
 class Place(BaseModel):
     """
@@ -19,7 +18,7 @@ class Place(BaseModel):
         id: Optional[str] = None
     ):
         super().__init__()
-        self.id = id  # Ajout d'un id optionnel pour la compatibilité mapping
+        self.id = id  # Pour compatibilité mapping
 
         if not title or len(title) > 100:
             raise ValueError("Le titre est requis et doit faire max 100 caractères")
@@ -35,8 +34,8 @@ class Place(BaseModel):
         self.price = price
         self.latitude = latitude
         self.longitude = longitude
-        self.owner = owner  # objet User ou owner_id selon usage
-        self.reviews = []  # liste d’objets Review (non mappés SQLA)
+        self.owner = owner  # objet User ou owner_id
+        self.reviews = []   # Liste de Review (objet métier)
         self.amenities = amenities if amenities is not None else []
 
     def add_review(self, review):
@@ -45,26 +44,33 @@ class Place(BaseModel):
     def add_amenity(self, amenity):
         self.amenities.append(amenity)
 
+
 # === Modèle ORM SQLAlchemy (mapping table places) ===
 
-# Important : ce modèle DOIT être visible dans l'import au moins une fois AVANT create_all()
+import uuid
+from datetime import datetime
+
 try:
     from app import db
 except ImportError:
-    db = None  # Pour permettre l'import même hors contexte Flask
+    db = None
 
 if db is not None:
     class PlaceORM(db.Model):
         __tablename__ = "places"
-        id = db.Column(db.String(36), primary_key=True)
+        id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
         title = db.Column(db.String(100), nullable=False)
         description = db.Column(db.Text)
         price = db.Column(db.Float, nullable=False)
         latitude = db.Column(db.Float, nullable=False)
         longitude = db.Column(db.Float, nullable=False)
         owner_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
-        # created_at = db.Column(db.DateTime, default=datetime.utcnow)
-        # updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+        created_at = db.Column(db.DateTime, default=datetime.utcnow)
+        updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+        
+        # Ici, on met reviews <-> place (back_populates, PAS backref)
+        reviews = db.relationship('Review', back_populates='place', lazy='dynamic')
 
         def __repr__(self):
             return f"<PlaceORM {self.id} {self.title}>"
+

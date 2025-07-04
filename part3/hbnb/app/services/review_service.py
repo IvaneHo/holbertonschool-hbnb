@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from app.models.review import Review
 from app.models.place import Place
 from app.models.user import User
-from app.persistence.repository import InMemoryRepository
+from app.persistence.sqlalchemy_repository import SQLAlchemyRepository
 from app.schemas.review import ReviewResponseSchema
 
 from pydantic import BaseModel, Field
@@ -51,12 +51,21 @@ class ReviewService:
         if not place:
             raise ValueError("place not found")
 
+        # --- Règle 1 : pas le droit de reviewer son propre lieu
+        # ATTENTION : adapte selon ta structure Place (ici owner_id attendu !)
+        owner_id = getattr(place, "owner_id", None)
+        if not owner_id and hasattr(place, "owner") and hasattr(place.owner, "id"):
+            owner_id = place.owner.id
+        if owner_id == validated.user_id:
+            raise ValueError("You cannot review your own place")
+
+        # --- Règle 2 : pas deux reviews pour le même lieu/user
         for review in self.review_repo.get_all():
             if (
                 review.user_id == validated.user_id
                 and review.place_id == validated.place_id
             ):
-                raise ValueError("user has already reviewed this place")
+                raise ValueError("You have already reviewed this place")
 
         review = Review(
             text=validated.text,

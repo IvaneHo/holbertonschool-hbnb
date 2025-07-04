@@ -10,7 +10,7 @@ def pretty(r):
     except Exception:
         print("Response (raw):", r.text)
 
-def register_and_login(email, password="TestPassword11234444", first_name="UserEEEEE", last_name="TestEEEEEE"):
+def register_and_login(email, password="TestPassword1123444444", first_name="UserEEZZZEEE", last_name="TestEEEZZ3ZEEE"):
     reg = requests.post(f"{BASE_URL}/users/", json={
         "email": email, "password": password,
         "first_name": first_name, "last_name": last_name,
@@ -24,11 +24,11 @@ def register_and_login(email, password="TestPassword11234444", first_name="UserE
     assert login.status_code == 200
     return reg.json()["id"], login.json()["access_token"]
 
-def create_place(token, title="My place"):
+def create_place(token, title="My place", description=""):
     r = requests.post(f"{BASE_URL}/places/", headers={
         "Authorization": f"Bearer {token}"
     }, json={
-        "title": title, "price": 50, "latitude": 10, "longitude": 10, "amenities": []
+        "title": title, "description": description, "price": 50, "latitude": 10, "longitude": 10, "amenities": []
     })
     pretty(r)
     assert r.status_code == 201
@@ -45,8 +45,8 @@ def create_review(token, place_id, text="Super !"):
 
 if __name__ == "__main__":
     # REGISTER + LOGIN 2 USERS
-    uid1, token1 = register_and_login("user1111111@ivane.com")
-    uid2, token2 = register_and_login("user2222222@ivane.com")
+    uid1, token1 = register_and_login("user1111@ivane.com")
+    uid2, token2 = register_and_login("user2222@ivane.com")
 
     # 1. POST /places/ SANS TOKEN => 401
     r = requests.post(f"{BASE_URL}/places/", json={
@@ -55,8 +55,27 @@ if __name__ == "__main__":
     pretty(r)
     assert r.status_code == 401
 
-    # 2. User1 crée un lieu
-    place_id = create_place(token1, "Chez User1111111")
+    # 2. User1 crée un lieu (avec description)
+    place_id = create_place(token1, "Chez User1111", description="Mon super appart à Dijon")
+    
+    # Teste que la description est présente et correcte sur le GET one
+    r = requests.get(f"{BASE_URL}/places/{place_id}")
+    pretty(r)
+    assert r.status_code == 200
+    assert "description" in r.json()
+    assert r.json()["description"] == "Mon super appart à Dijon"
+
+    # Teste que la description est présente dans la liste GET all (au moins pour ce lieu)
+    r = requests.get(f"{BASE_URL}/places/")
+    pretty(r)
+    assert r.status_code == 200
+    found = False
+    for place in r.json():
+        if place["id"] == place_id:
+            assert "description" in place
+            assert place["description"] == "Mon super appart à Dijon"
+            found = True
+    assert found, "Le lieu nouvellement créé n'a pas été trouvé dans la liste !"
 
     # 3. User2 essaye de modifier le lieu de user1 => 403
     r = requests.put(f"{BASE_URL}/places/{place_id}", headers={
@@ -72,6 +91,9 @@ if __name__ == "__main__":
     }, json={"title": "Update ok"})
     pretty(r)
     assert r.status_code == 200
+    # Vérifie que la description n’a pas été supprimée (toujours présente)
+    assert "description" in r.json()
+    assert r.json()["description"] == "Mon super appart à Dijon"
 
     # 5. User1 essaye de se reviewer lui-même => 400
     r = create_review(token1, place_id)

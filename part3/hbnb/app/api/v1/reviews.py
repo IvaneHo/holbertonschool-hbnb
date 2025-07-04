@@ -47,7 +47,6 @@ class ReviewList(Resource):
         return facade.get_all_reviews()
 
     @api.expect(review_model, validate=True)
-    @api.marshal_with(review_response, code=201)
     @api.response(201, "Review successfully created")
     @api.response(400, "Invalid input data")
     @jwt_required()
@@ -68,12 +67,14 @@ class ReviewList(Resource):
                 return {"error": "You have already reviewed this place"}, 400
 
         try:
-            return facade.create_review(data), 201
+            result = facade.create_review(data)
+            return result, 201
         except Exception as e:
             return {"error": str(e)}, 400
 
 @api.route("/<string:review_id>")
 class ReviewItem(Resource):
+    @api.marshal_with(review_response)
     @api.response(200, "Review retrieved successfully")
     @api.response(404, "Review not found")
     def get(self, review_id):
@@ -84,6 +85,7 @@ class ReviewItem(Resource):
         return review, 200
 
     @api.expect(review_update_model, validate=True)
+    @api.marshal_with(review_response)
     @api.response(200, "Review updated successfully")
     @api.response(400, "Invalid update data")
     @api.response(404, "Review not found")

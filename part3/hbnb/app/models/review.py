@@ -1,22 +1,27 @@
-from app.models.base_model import BaseModel
+from app import db
+import uuid
+from datetime import datetime
 
+class Review(db.Model):
+    __tablename__ = 'reviews'
 
-class Review(BaseModel):
-    def __init__(self, text, rating, place, user):
-        super().__init__()
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    text = db.Column(db.String(500), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-        # Validation
-        if not text:
-            raise ValueError("Le texte de l'avis est requis")
-        if not (1 <= rating <= 5):
-            raise ValueError("La note doit être entre 1 et 5")
-        if not place or not user:
-            raise ValueError("Un utilisateur et un lieu sont requis")
+    # Relation clean et symétrique (PAS de backref ici, on utilise back_populates)
+    user = db.relationship('User', backref='reviews')
+    place = db.relationship('PlaceORM', back_populates='reviews')  # 'PlaceORM', pas 'Place' !
 
-        # Attributs simples (indispensables pour Pydantic, JSON, etc.)
+    def __init__(self, text, rating, user, place):
         self.text = text
         self.rating = rating
-        self.place_id = place.id
-        self.user_id = user.id
-        self.created_at = self.created_at  # hérité de BaseModel
-        self.updated_at = self.updated_at  # hérité de BaseModel
+        self.user = user
+        self.place = place
+
+    def __repr__(self):
+        return f"<Review {self.id}: {self.text[:20]}>"

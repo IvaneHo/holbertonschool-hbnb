@@ -1,4 +1,4 @@
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields, marshal
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.facade import facade
 
@@ -72,7 +72,6 @@ class UserResource(Resource):
         return user, 200
 
     @api.expect(user_update_model, validate=True)
-    @api.marshal_with(user_model_response)
     @api.response(200, "User updated")
     @api.response(404, "User not found")
     @api.response(400, "Validation error")
@@ -82,7 +81,6 @@ class UserResource(Resource):
         """
         Update user by ID (user only, can't change email or password)
         """
-        # Vérifie l’identité du user connecté
         jwt_user = get_jwt_identity()
         if isinstance(jwt_user, dict):
             jwt_user = jwt_user.get("id")
@@ -98,12 +96,12 @@ class UserResource(Resource):
             return {"error": "User not found"}, 404
         try:
             user = facade.update_user(user_id, payload)
-            return user, 200
+            # Marshal uniquement en cas de succès
+            return marshal(user, user_model_response), 200
         except Exception as e:
             return {"error": str(e)}, 400
 
     @api.expect(user_update_model, validate=True)
-    @api.marshal_with(user_model_response)
     @api.response(200, "User updated (PATCH)")
     @api.response(404, "User not found")
     @api.response(400, "Validation error")
@@ -128,7 +126,7 @@ class UserResource(Resource):
             return {"error": "User not found"}, 404
         try:
             user = facade.update_user(user_id, payload)
-            return user, 200
+            return marshal(user, user_model_response), 200
         except Exception as e:
             return {"error": str(e)}, 400
 
