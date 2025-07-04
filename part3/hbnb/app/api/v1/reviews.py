@@ -1,5 +1,5 @@
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services.facade import facade
 
 api = Namespace("reviews", description="Review operations")
@@ -13,7 +13,6 @@ review_model = api.model(
     {
         "text": fields.String(required=True, description="Review text"),
         "rating": fields.Integer(required=True, description="Rating from 1 to 5", min=1, max=5),
-        # user_id jamais demandé côté client !
         "place_id": fields.String(required=True, description="ID of the place"),
     },
 )
@@ -54,9 +53,9 @@ class ReviewList(Resource):
         """Create a new review (auth, not on own place, not twice)"""
         user_id = get_current_user_id()
         data = api.payload.copy()
-        data["user_id"] = user_id  # Toujours injecté côté serveur
+        data["user_id"] = user_id
 
-        # --- Règles métier côté API (doivent exister aussi côté service/facade) ---
+        # Règles métier côté API
         place = facade.get_place(data["place_id"])
         if not place:
             return {"error": "Place not found"}, 400
@@ -92,12 +91,14 @@ class ReviewItem(Resource):
     @api.response(403, "Unauthorized action")
     @jwt_required()
     def put(self, review_id):
-        """Update review (auth & ownership required)"""
+        """Update review (owner OR admin)"""
         user_id = get_current_user_id()
+        claims = get_jwt()
+        is_admin = claims.get("is_admin", False)
         review = facade.get_review(review_id)
         if not review or not review.get("id"):
             return {"error": "Review not found"}, 404
-        if review["user_id"] != user_id:
+        if not is_admin and review["user_id"] != user_id:
             return {"error": "Unauthorized action"}, 403
 
         try:
@@ -111,12 +112,14 @@ class ReviewItem(Resource):
     @api.response(403, "Unauthorized action")
     @jwt_required()
     def delete(self, review_id):
-        """Delete review (auth & ownership required)"""
+        """Delete review (owner OR admin)"""
         user_id = get_current_user_id()
+        claims = get_jwt()
+        is_admin = claims.get("is_admin", False)
         review = facade.get_review(review_id)
         if not review or not review.get("id"):
             return {"error": "Review not found"}, 404
-        if review["user_id"] != user_id:
+        if not is_admin and review["user_id"] != user_id:
             return {"error": "Unauthorized action"}, 403
         try:
             result = facade.delete_review(review_id)

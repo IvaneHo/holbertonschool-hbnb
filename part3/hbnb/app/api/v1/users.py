@@ -1,8 +1,7 @@
 from flask_restx import Namespace, Resource, fields, marshal
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services.facade import facade
 
-# Namespace pour les utilisateurs
 api = Namespace("users", description="User operations")
 
 user_create_model = api.model(
@@ -20,8 +19,8 @@ user_update_model = api.model(
     {
         "first_name": fields.String(description="First name"),
         "last_name": fields.String(description="Last name"),
-        "email": fields.String(description="Email address"),  # Interdit par la logique
-        "password": fields.String(description="New password (min 8 caractères)", min_length=8),  # Interdit aussi
+        "email": fields.String(description="Email address"),  # Admin seulement
+        "password": fields.String(description="New password (min 8 caractères)", min_length=8),  # Admin seulement
     },
 )
 
@@ -44,8 +43,13 @@ class UserList(Resource):
     @api.marshal_with(user_model_response)
     @api.response(201, "User successfully created")
     @api.response(400, "Invalid input")
+    @api.response(403, "Admin privileges required")
+    @jwt_required()
     def post(self):
-        """Register a new user (password required)"""
+        """Register a new user (admin only)"""
+        claims = get_jwt()
+        if not claims.get("is_admin"):
+            return {"error": "Admin privileges required"}, 403
         try:
             user = facade.create_user(api.payload)
             return user, 201
@@ -79,24 +83,35 @@ class UserResource(Resource):
     @jwt_required()
     def put(self, user_id):
         """
-        Update user by ID (user only, can't change email or password)
+        Update user by ID (user only, can't change email or password except admin)
         """
+        claims = get_jwt()
         jwt_user = get_jwt_identity()
-        if isinstance(jwt_user, dict):
-            jwt_user = jwt_user.get("id")
-        if user_id != jwt_user:
-            return {"error": "Unauthorized action"}, 403
+        is_admin = claims.get("is_admin", False)
+
+        # Pour utilisateur classique, vérifier ownership
+        if not is_admin:
+            if user_id != jwt_user:
+                return {"error": "Unauthorized action"}, 403
 
         payload = api.payload.copy()
-        if "email" in payload or "password" in payload:
+
+        # Seul un admin peut changer email ou password
+        if not is_admin and ("email" in payload or "password" in payload):
             return {"error": "You cannot modify email or password"}, 400
 
         user_exists = facade.get_user(user_id)
         if not user_exists:
             return {"error": "User not found"}, 404
+
+        # Pour l'admin, vérifier l'unicité email
+        if is_admin and "email" in payload:
+            existing = facade.get_user_by_email(payload["email"])
+            if existing and existing.id != user_id:
+                return {"error": "Email already in use"}, 400
+
         try:
             user = facade.update_user(user_id, payload)
-            # Marshal uniquement en cas de succès
             return marshal(user, user_model_response), 200
         except Exception as e:
             return {"error": str(e)}, 400
@@ -109,21 +124,30 @@ class UserResource(Resource):
     @jwt_required()
     def patch(self, user_id):
         """
-        Patch user by ID (user only, can't change email or password)
+        Patch user by ID (user only, can't change email or password except admin)
         """
+        claims = get_jwt()
         jwt_user = get_jwt_identity()
-        if isinstance(jwt_user, dict):
-            jwt_user = jwt_user.get("id")
-        if user_id != jwt_user:
-            return {"error": "Unauthorized action"}, 403
+        is_admin = claims.get("is_admin", False)
+
+        if not is_admin:
+            if user_id != jwt_user:
+                return {"error": "Unauthorized action"}, 403
 
         payload = api.payload.copy()
-        if "email" in payload or "password" in payload:
+
+        if not is_admin and ("email" in payload or "password" in payload):
             return {"error": "You cannot modify email or password"}, 400
 
         user_exists = facade.get_user(user_id)
         if not user_exists:
             return {"error": "User not found"}, 404
+
+        if is_admin and "email" in payload:
+            existing = facade.get_user_by_email(payload["email"])
+            if existing and existing.id != user_id:
+                return {"error": "Email already in use"}, 400
+
         try:
             user = facade.update_user(user_id, payload)
             return marshal(user, user_model_response), 200
@@ -131,7 +155,6 @@ class UserResource(Resource):
             return {"error": str(e)}, 400
 
 def register_user_models(api):
-    """Force l'enregistrement Swagger des modèles utilisateurs"""
     api.models[user_create_model.name] = user_create_model
     api.models[user_update_model.name] = user_update_model
     api.models[user_model_response.name] = user_model_response

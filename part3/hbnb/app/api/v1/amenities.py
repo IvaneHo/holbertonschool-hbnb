@@ -1,11 +1,10 @@
 from flask_restx import Namespace, Resource, fields
 from flask import request
+from flask_jwt_extended import jwt_required, get_jwt
 from app.services.facade import facade
 
-# Define the namespace for amenity-related operations
 api = Namespace("amenities", path="/api/v1/amenities", description="Amenity operations")
 
-# Model used in Swagger for creation (POST)
 amenity_model = api.model(
     "Amenity",
     {
@@ -16,7 +15,6 @@ amenity_model = api.model(
     },
 )
 
-# Model used in Swagger for partial update (PUT)
 amenity_partial_model = api.model(
     "AmenityPartial",
     {
@@ -25,7 +23,6 @@ amenity_partial_model = api.model(
     },
 )
 
-# Response model used in Swagger (GET, POST, PUT)
 amenity_response_model = api.inherit(
     "AmenityResponse",
     amenity_model,
@@ -36,7 +33,6 @@ amenity_response_model = api.inherit(
     },
 )
 
-
 @api.route("/")
 class AmenityListResource(Resource):
     @api.marshal_with(amenity_response_model, as_list=True)
@@ -45,8 +41,13 @@ class AmenityListResource(Resource):
         return facade.get_all_amenities(), 200
 
     @api.expect(amenity_model, validate=True)
+    @jwt_required()
     def post(self):
-        """Create a new amenity"""
+        """Create a new amenity (admin only)"""
+        claims = get_jwt()
+        if not claims.get("is_admin"):
+            return {"error": "Admin privileges required"}, 403
+
         data = request.get_json(force=True)
         if not data or not data.get("name") or not data.get("name").strip():
             return {"error": "name is required (max 50 characters)"}, 400
@@ -56,20 +57,23 @@ class AmenityListResource(Resource):
         except Exception as e:
             return {"error": str(e)}, 400
 
-
 @api.route("/<string:amenity_id>")
 class AmenityResource(Resource):
     def get(self, amenity_id):
         """Retrieve a specific amenity by its ID"""
         result = facade.get_amenity(amenity_id)
-        # Correction ici : on vérifie aussi si result.get("id") est None
         if not result or result.get("id") is None:
             return {"error": "Amenity not found"}, 404
         return result, 200
 
     @api.expect(amenity_partial_model, validate=True)
+    @jwt_required()
     def put(self, amenity_id):
-        """Update an existing amenity (partial updates allowed)"""
+        """Update an existing amenity (admin only)"""
+        claims = get_jwt()
+        if not claims.get("is_admin"):
+            return {"error": "Admin privileges required"}, 403
+
         result = facade.get_amenity(amenity_id)
         if not result or result.get("id") is None:
             return {"error": "Amenity not found"}, 404

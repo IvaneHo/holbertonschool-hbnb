@@ -2,36 +2,36 @@ from typing import Optional, List
 from datetime import datetime
 from pydantic import ValidationError
 
-from app.models.amenity import Amenity
+from app.models.amenity import AmenityORM  # <-- Only ORM
 from app.schemas.amenity import (
     AmenitySchema,
     AmenityUpdateSchema,
     AmenityResponseSchema,
 )
-from app.persistence.repository import InMemoryRepository
-
+# On utilise un repo SQLAlchemy (passe-le depuis la facade !)
 
 class AmenityService:
-    def __init__(self, repo: Optional[InMemoryRepository] = None) -> None:
-        self.repo = repo or InMemoryRepository()
+    def __init__(self, repo):  # Pas de type InMemory ici
+        self.repo = repo
 
     def _now(self) -> datetime:
-        return datetime.now()
+        return datetime.utcnow()
 
     def create_amenity(self, data: dict) -> dict:
-        """Crée une nouvelle amenity. Le message d’erreur doit contenir *name* pour passer les tests."""
         try:
             validated = AmenitySchema(**data)
         except ValidationError:
             raise ValueError("name is required (max 50 characters)")
 
-        amenity = Amenity(
+        amenity = AmenityORM(
             name=validated.name,
-            description=(
-                validated.description if hasattr(validated, "description") else ""
-            ),
+            description=getattr(validated, "description", "")
         )
         self.repo.add(amenity)
+
+        # Après ajout, il faut peut-être faire un commit si pas géré ailleurs :
+        if hasattr(self.repo, "commit"):
+            self.repo.commit()
 
         return AmenityResponseSchema(
             id=amenity.id,
@@ -67,7 +67,6 @@ class AmenityService:
         ]
 
     def update_amenity(self, amenity_id: str, data: dict) -> Optional[dict]:
-        """Met à jour une amenity existante. Permet la mise à jour partielle."""
         amenity = self.repo.get(amenity_id)
         if not amenity:
             return None
@@ -84,6 +83,11 @@ class AmenityService:
             amenity.description = validated.description.strip()
 
         amenity.updated_at = self._now()
+
+        self.repo.update(amenity_id, data)
+
+        if hasattr(self.repo, "commit"):
+            self.repo.commit()
 
         return AmenityResponseSchema(
             id=amenity.id,

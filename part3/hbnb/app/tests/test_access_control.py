@@ -2,6 +2,10 @@ import requests
 
 BASE_URL = "http://127.0.0.1:5000/api/v1"
 
+# Identifiants d'admin
+ADMIN_EMAIL = "admin@ivane.com"
+ADMIN_PASS = "12345678"
+
 def pretty(r):
     print(f"\n{r.request.method} {r.request.url}")
     print("Status:", r.status_code)
@@ -10,19 +14,55 @@ def pretty(r):
     except Exception:
         print("Response (raw):", r.text)
 
-def register_and_login(email, password="TestPassword1123444444", first_name="UserEEZZZEEE", last_name="TestEEEZZ3ZEEE"):
-    reg = requests.post(f"{BASE_URL}/users/", json={
+def admin_login():
+    r = requests.post(f"{BASE_URL}/auth/login", json={
+        "email": ADMIN_EMAIL, "password": ADMIN_PASS
+    })
+    pretty(r)
+    assert r.status_code == 200
+    return r.json()["access_token"]
+
+def register_user(email, password="TestPassword1123444444", first_name="UserEEZZZEEE", last_name="TestEEEZZ3ZEEE", admin_token=None):
+    # La création d'un user nécessite désormais un token admin
+    headers = {}
+    if admin_token:
+        headers["Authorization"] = f"Bearer {admin_token}"
+    r = requests.post(f"{BASE_URL}/users/", json={
         "email": email, "password": password,
         "first_name": first_name, "last_name": last_name,
-    })
-    pretty(reg)
-    assert reg.status_code == 201
-    login = requests.post(f"{BASE_URL}/auth/login", json={
+    }, headers=headers)
+    pretty(r)
+    assert r.status_code in (201, 400), "User creation failed: status %s" % r.status_code
+    if r.status_code == 400:
+        # L'utilisateur existe déjà, on va chercher son ID par login ensuite
+        return None
+    return r.json()["id"]
+
+def login(email, password):
+    r = requests.post(f"{BASE_URL}/auth/login", json={
         "email": email, "password": password
     })
-    pretty(login)
-    assert login.status_code == 200
-    return reg.json()["id"], login.json()["access_token"]
+    pretty(r)
+    assert r.status_code == 200
+    return r.json()["access_token"]
+
+def get_user_id(email, admin_token):
+    r = requests.get(f"{BASE_URL}/users/", headers={"Authorization": f"Bearer {admin_token}"})
+    pretty(r)
+    assert r.status_code == 200
+    for user in r.json():
+        if user["email"] == email:
+            return user["id"]
+    raise Exception(f"User with email {email} not found")
+
+def register_and_login(email, password="TestPassword1123444444", first_name="UserEEZZZEEE", last_name="TestEEEZZ3ZEEE"):
+    admin_token = admin_login()
+    uid = register_user(email, password, first_name, last_name, admin_token=admin_token)
+    # Si déjà existant, on récupère l'id
+    if uid is None:
+        uid = get_user_id(email, admin_token)
+    token = login(email, password)
+    return uid, token
 
 def create_place(token, title="My place", description=""):
     r = requests.post(f"{BASE_URL}/places/", headers={
@@ -44,7 +84,7 @@ def create_review(token, place_id, text="Super !"):
     return r
 
 if __name__ == "__main__":
-    # REGISTER + LOGIN 2 USERS
+    # REGISTER + LOGIN 2 USERS (créés par admin)
     uid1, token1 = register_and_login("user1111@ivane.com")
     uid2, token2 = register_and_login("user2222@ivane.com")
 

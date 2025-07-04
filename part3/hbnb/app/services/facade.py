@@ -12,7 +12,7 @@ from app.persistence.sqlalchemy_repository import SQLAlchemyRepository
 
 from app.models.user import User      # SQLAlchemy
 from app.models.place import PlaceORM # <-- ICI LE MODÈLE ORM
-from app.models.amenity import Amenity
+from app.models.amenity import Amenity, AmenityORM   
 from app.models.review import Review
 
 class HBnBFacade:
@@ -21,8 +21,8 @@ class HBnBFacade:
     def __init__(self):
         # Initialisation des repositories SQLAlchemy (ORM, pas métier)
         self.user_repo = SQLAlchemyRepository(User)
-        self.place_repo = SQLAlchemyRepository(PlaceORM)  # <-- C'est ça qui change tout !
-        self.amenity_repo = SQLAlchemyRepository(Amenity)
+        self.place_repo = SQLAlchemyRepository(PlaceORM)
+        self.amenity_repo = SQLAlchemyRepository(AmenityORM)  
         self.review_repo = SQLAlchemyRepository(Review)
 
         # Initialisation des services avec leurs dépendances
