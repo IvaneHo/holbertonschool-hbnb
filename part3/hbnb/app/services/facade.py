@@ -9,7 +9,8 @@ from app.services.place_service import PlaceService
 from app.services.amenity_service import AmenityService
 from app.services.review_service import ReviewService
 from app.persistence.sqlalchemy_repository import SQLAlchemyRepository
-from app.services.repositories.user_repository import UserRepository
+from app.persistence.user_repository import UserRepository
+
 from app.models.user import User      # SQLAlchemy
 from app.models.place import PlaceORM # <-- ICI LE MODÈLE ORM
 from app.models.amenity import Amenity, AmenityORM   
@@ -20,7 +21,7 @@ class HBnBFacade:
 
     def __init__(self):
         # Initialisation des repositories SQLAlchemy (ORM, pas métier)
-        self.user_repo = UserRepository()
+        self.user_repo = UserRepository()                    # <-- Remplacé ici
         self.place_repo = SQLAlchemyRepository(PlaceORM)
         self.amenity_repo = SQLAlchemyRepository(AmenityORM)  
         self.review_repo = SQLAlchemyRepository(Review)

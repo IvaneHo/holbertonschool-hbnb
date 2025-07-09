@@ -1,36 +1,24 @@
-from app import db
 import uuid
 from datetime import datetime
+from app import db
 
-# Classe de base commune à tous les modèles (gère ID et timestamps)
-
-
-class BaseModel:
-    def __init__(self):
-        # Génère un identifiant unique pour chaque instance
-        self.id = str(uuid.uuid4())
-
-        # Date de création de l'objet
-        self.created_at = datetime.now()
-
-        # Date de dernière mise à jour (initialisée à la création)
-        self.updated_at = datetime.now()
-
-    def save(self):
-        """Met à jour la date de modification"""
-        self.updated_at = datetime.now()
-
-    def update(self, data):
-        """Met à jour les attributs depuis un dictionnaire"""
-        for key, value in data.items():
-            if hasattr(self, key):
-                # Modifie uniquement les attributs existants
-                setattr(self, key, value)
-        # Met à jour la date de modification après les changements
-        self.save()
 class BaseModel(db.Model):
-    __abstract__ = True
+    __abstract__ = True  # Empêche SQLAlchemy de créer une table pour BaseModel
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def save(self):
+        """Met à jour l'instance et enregistre dans la base"""
+        self.updated_at = datetime.utcnow()
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self, data: dict):
+        """Met à jour les attributs existants depuis un dictionnaire et sauvegarde"""
+        for key, value in data.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        self.updated_at = datetime.utcnow()
+        db.session.commit()

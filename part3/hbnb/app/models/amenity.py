@@ -2,6 +2,7 @@ from app.models.base_model import BaseModel
 
 # Classe métier (logique Python pure)
 class Amenity(BaseModel):
+    __abstract__ = True
     def __init__(self, name: str, description: str = ""):
         super().__init__()
 

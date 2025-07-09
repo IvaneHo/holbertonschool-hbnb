@@ -4,4 +4,3 @@ pydantic[email]>=2.6,<3.0
 argon2-cffi==23.1.0
 flask_sqlalchemy
 flask-jwt-extended
-flask-sqlalchemy
