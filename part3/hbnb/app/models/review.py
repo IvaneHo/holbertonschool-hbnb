@@ -14,14 +14,8 @@ class Review(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relation clean et symétrique (PAS de backref ici, on utilise back_populates)
-    user = db.relationship('User', backref='reviews')
+    user = db.relationship('User', back_populates='reviews')
     place = db.relationship('PlaceORM', back_populates='reviews')  # 'PlaceORM', pas 'Place' !
-
-    def __init__(self, text, rating, user, place):
-        self.text = text
-        self.rating = rating
-        self.user = user
-        self.place = place
 
     def __repr__(self):
         return f"<Review {self.id}: {self.text[:20]}>"

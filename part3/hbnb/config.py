@@ -9,6 +9,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     # Création du fichier SQLite à la racine du projet
     SQLALCHEMY_DATABASE_URI = 'sqlite:///hbnb.dev.db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 class ProductionConfig(Config):
     DEBUG = False

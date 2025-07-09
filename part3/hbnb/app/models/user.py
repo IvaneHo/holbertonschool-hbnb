@@ -1,21 +1,19 @@
 from app import db
 from argon2 import PasswordHasher
+from .base_model import BaseModel
 from datetime import datetime
 import uuid
 
 ph = PasswordHasher()
 
-class User(db.Model):
+class User(BaseModel):
     __tablename__ = "users"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __init__(self, first_name, last_name, email, password, is_admin=False):
         # Validations identiques à avant
@@ -32,14 +30,14 @@ class User(db.Model):
         self.hash_password(password)
         # id, created_at, updated_at gérés automatiquement
 
-    def hash_password(self, plain_password):
+    def hash_password(self, password):
         """Hash le mot de passe avec Argon2 et le stocke."""
-        self.password = ph.hash(plain_password)
+        self.password = ph.hash(password)
 
-    def verify_password(self, plain_password):
+    def verify_password(self, password):
         """Vérifie si le mot de passe en clair correspond au hash."""
         try:
-            return ph.verify(self.password, plain_password)
+            return ph.verify(self.password, password)
         except Exception:
             return False
 

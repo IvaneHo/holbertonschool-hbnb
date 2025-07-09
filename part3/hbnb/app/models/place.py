@@ -56,21 +56,35 @@ except ImportError:
     db = None
 
 if db is not None:
+    place_amenity = db.Table(
+        'place_amenity',
+        db.Column('place_id', db.String(36), db.ForeignKey('places.id'), primary_key=True),
+        db.Column('amenity_id', db.String(36), db.ForeignKey('amenities.id'), primary_key=True)
+    )
+
     class PlaceORM(db.Model):
         __tablename__ = "places"
+
         id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
         title = db.Column(db.String(100), nullable=False)
         description = db.Column(db.Text)
         price = db.Column(db.Float, nullable=False)
         latitude = db.Column(db.Float, nullable=False)
         longitude = db.Column(db.Float, nullable=False)
+
         owner_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+        owner = db.relationship('User', back_populates='places')
+
+        reviews = db.relationship('Review', back_populates='place', cascade='all, delete-orphan')
+
+        amenities = db.relationship(
+            'AmenityORM',
+            secondary=place_amenity,
+            back_populates='places'
+        )
+
         created_at = db.Column(db.DateTime, default=datetime.utcnow)
         updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-        
-        # Ici, on met reviews <-> place (back_populates, PAS backref)
-        reviews = db.relationship('Review', back_populates='place', lazy='dynamic')
 
         def __repr__(self):
             return f"<PlaceORM {self.id} {self.title}>"
-
