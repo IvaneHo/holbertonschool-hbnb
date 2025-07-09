@@ -6,17 +6,14 @@ import unittest
 from app import create_app, db
 from app.models.user import User
 from app.persistence.user_repository import UserRepository
-import uuid
+from config import TestingConfig  # <-- IMPORT ici
 
 class TestUserRepository(unittest.TestCase):
     def setUp(self):
-        # Set up a fresh app and DB before each test
-        self.app = create_app()
-        self.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-        self.app.config["TESTING"] = True
+        # Utilise explicitement la config de test
+        self.app = create_app(config_class=TestingConfig)
         self.app_context = self.app.app_context()
         self.app_context.push()
-        db.drop_all() 
         print("DB URI utilisée pour le test:", self.app.config["SQLALCHEMY_DATABASE_URI"])
         db.create_all()
         self.repo = UserRepository()

@@ -21,3 +21,16 @@ config = {
     'default': DevelopmentConfig,
     'production': ProductionConfig,
 }
+
+
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"  # DB en RAM uniquement pour chaque test
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+config = {
+    'development': DevelopmentConfig,
+    'default': DevelopmentConfig,
+    'production': ProductionConfig,
+    'testing': TestingConfig  # Ajout ici !
+}
