@@ -1,6 +1,10 @@
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services.facade import facade
+from app.models.place import Place
+
+from app.schemas.place import PlaceResponseSchema
+
 
 api = Namespace("places", description="Place operations")
 
@@ -51,7 +55,8 @@ class PlaceList(Resource):
         data = api.payload.copy()
         data["owner_id"] = get_current_user_id()
         try:
-            return facade.create_place(data), 201
+            created_place = facade.create_place(data)
+            return PlaceResponseSchema.from_place(created_place).dict(), 201
         except Exception as e:
             return {"error": str(e)}, 400
 
@@ -59,7 +64,8 @@ class PlaceList(Resource):
     @api.doc(description="Retrieve the full list of places (public endpoint)")
     def get(self):
         """Retrieve all places (public)"""
-        return facade.get_all_places(), 200
+        places = facade.get_all_places()  # <--- le bon appel !
+        return [PlaceResponseSchema.from_place(p).dict() for p in places], 200
 
 @api.route("/<string:place_id>")
 class PlaceResource(Resource):
@@ -71,7 +77,7 @@ class PlaceResource(Resource):
         place = facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
-        return place, 200
+        return PlaceResponseSchema.from_place(place).dict(), 200
 
     @api.expect(place_update_model, validate=True)
     @api.response(200, "Place successfully updated")
@@ -88,13 +94,13 @@ class PlaceResource(Resource):
         place = facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
-        if not is_admin and place["owner_id"] != user_id:
+        if not is_admin and place.owner_id != user_id:
             return {"error": "Unauthorized action"}, 403
 
         payload = api.payload.copy()
         payload.pop("owner_id", None)  # Protection, même si jamais dans Swagger
         try:
-            result = facade.update_place(place_id, payload)
-            return result, 200
+            updated_place = facade.update_place(place_id, payload)
+            return PlaceResponseSchema.from_place(updated_place).dict(), 200
         except Exception as e:
             return {"error": str(e)}, 400

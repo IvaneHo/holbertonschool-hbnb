@@ -19,10 +19,15 @@ class ReviewUpdateSchema(BaseModel):
 
 # Schéma utilisé pour les réponses API
 class ReviewResponseSchema(BaseModel):
-    id: str
-    text: str
-    rating: int
-    user_id: str
-    place_id: str
-    created_at: datetime
-    updated_at: datetime
+    @classmethod
+    def from_orm(cls, review):
+        """Crée une ReviewResponseSchema depuis un objet Review SQLAlchemy"""
+        return cls(
+            id=review.id,
+            text=review.text,
+            rating=review.rating,
+            user_id=review.user_id,
+            place_id=review.place_id,
+            created_at=review.created_at,
+            updated_at=review.updated_at,
+        )

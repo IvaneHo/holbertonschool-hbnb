@@ -70,8 +70,8 @@ class ReviewService:
         review = Review(
             text=validated.text,
             rating=validated.rating,
-            user=user,
-            place=place,
+            user_id=validated.user_id,    # <-- la clé étrangère
+            place_id=validated.place_id,
         )
         self.review_repo.add(review)
         return self._serialize(review)

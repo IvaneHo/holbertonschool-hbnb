@@ -43,7 +43,8 @@ class ReviewList(Resource):
     @api.marshal_list_with(review_response)
     def get(self):
         """List all reviews (public)"""
-        return facade.get_all_reviews()
+        # Toujours renvoyer une liste de dicts
+        return [r if isinstance(r, dict) else r.__dict__ for r in facade.get_all_reviews()]
 
     @api.expect(review_model, validate=True)
     @api.response(201, "Review successfully created")
@@ -59,15 +60,20 @@ class ReviewList(Resource):
         place = facade.get_place(data["place_id"])
         if not place:
             return {"error": "Place not found"}, 400
-        if place["owner_id"] == user_id:
+        if getattr(place, "owner_id", None) == user_id:
             return {"error": "You cannot review your own place"}, 400
-        for review in facade.get_reviews_by_place(data["place_id"]):
-            if review["user_id"] == user_id:
+
+        # Vérification anti-double review
+        all_reviews = facade.get_reviews_by_place(data["place_id"])
+        for review in all_reviews:
+            user_id_cmp = review["user_id"] if isinstance(review, dict) else getattr(review, "user_id", None)
+            if user_id_cmp == user_id:
                 return {"error": "You have already reviewed this place"}, 400
 
         try:
             result = facade.create_review(data)
-            return result, 201
+            # Toujours renvoyer un dict (jamais un objet SQLAlchemy)
+            return result if isinstance(result, dict) else result.__dict__, 201
         except Exception as e:
             return {"error": str(e)}, 400
 
@@ -79,9 +85,10 @@ class ReviewItem(Resource):
     def get(self, review_id):
         """Get review by ID (public)"""
         review = facade.get_review(review_id)
-        if not review or not review.get("id"):
+        if not review:
             return {"error": "Review not found"}, 404
-        return review, 200
+        # Toujours dict pour compatibilité
+        return review if isinstance(review, dict) else review.__dict__, 200
 
     @api.expect(review_update_model, validate=True)
     @api.marshal_with(review_response)
@@ -96,14 +103,15 @@ class ReviewItem(Resource):
         claims = get_jwt()
         is_admin = claims.get("is_admin", False)
         review = facade.get_review(review_id)
-        if not review or not review.get("id"):
+        if not review:
             return {"error": "Review not found"}, 404
-        if not is_admin and review["user_id"] != user_id:
+        review_dict = review if isinstance(review, dict) else review.__dict__
+        if not is_admin and review_dict["user_id"] != user_id:
             return {"error": "Unauthorized action"}, 403
 
         try:
             updated = facade.update_review(review_id, api.payload)
-            return updated, 200
+            return updated if isinstance(updated, dict) else updated.__dict__, 200
         except Exception as e:
             return {"error": str(e)}, 400
 
@@ -117,13 +125,14 @@ class ReviewItem(Resource):
         claims = get_jwt()
         is_admin = claims.get("is_admin", False)
         review = facade.get_review(review_id)
-        if not review or not review.get("id"):
+        if not review:
             return {"error": "Review not found"}, 404
-        if not is_admin and review["user_id"] != user_id:
+        review_dict = review if isinstance(review, dict) else review.__dict__
+        if not is_admin and review_dict["user_id"] != user_id:
             return {"error": "Unauthorized action"}, 403
         try:
             result = facade.delete_review(review_id)
-            return result, 200
+            return result if isinstance(result, dict) else {"message": "review deleted"}, 200
         except Exception as e:
             return {"error": str(e)}, 400
 
@@ -135,6 +144,8 @@ class ReviewsByPlace(Resource):
     def get(self, place_id):
         """Get reviews by place ID (public)"""
         try:
-            return facade.get_reviews_by_place(place_id), 200
+            reviews = facade.get_reviews_by_place(place_id)
+            # Liste de dicts, jamais d'objets ORM
+            return [r if isinstance(r, dict) else r.__dict__ for r in reviews], 200
         except Exception as e:
             return {"error": str(e)}, 404

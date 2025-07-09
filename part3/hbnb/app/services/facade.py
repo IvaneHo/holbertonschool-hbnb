@@ -14,6 +14,8 @@ from app.models.place import Place
 from app.models.review import Review
 from app.models.amenity import Amenity
 
+from app.services.review_service import ReviewService
+
 class HBnBFacade:
     """Couche d'accès unique aux services métier utilisée par les routes API."""
 
@@ -22,6 +24,13 @@ class HBnBFacade:
         self.place_repo = PlaceRepository()
         self.review_repo = ReviewRepository()
         self.amenity_repo = AmenityRepository()
+
+        # Instanciation du ReviewService avec les bons repos
+        self.review_service = ReviewService(
+            self.review_repo,
+            self.user_repo,
+            self.place_repo
+        )
 
     # ------------------------------ UTILISATEUR ----------------------------- #
 
@@ -83,9 +92,8 @@ class HBnBFacade:
     # -------------------------------- REVIEW ------------------------------- #
 
     def create_review(self, data: dict) -> Review:
-        review = Review(**data)
-        self.review_repo.add(review)
-        return review
+        # Option : utiliser le ReviewService pour bénéficier des règles métier
+        return self.review_service.create_review(data)
 
     def get_review(self, review_id: str) -> Optional[Review]:
         return self.review_repo.get(review_id)
@@ -98,6 +106,10 @@ class HBnBFacade:
 
     def delete_review(self, review_id: str):
         return self.review_repo.delete(review_id)
+
+    def get_reviews_by_place(self, place_id):
+        return self.review_service.get_reviews_by_place(place_id)
+
 
 # Instance globale utilisée par les routes
 facade = HBnBFacade()

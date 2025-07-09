@@ -54,8 +54,8 @@ class PlaceResponseSchema(BaseModel):
             price=place.price,
             latitude=place.latitude,
             longitude=place.longitude,
-            owner_id=place.owner.id,
-            amenities=[a.name for a in place.amenities],  # <--- ICI
+            owner_id=getattr(place, "owner_id", None),
+            amenities=[a.name for a in getattr(place, "amenities", [])],
             created_at=str(place.created_at),
             updated_at=str(place.updated_at),
         )
