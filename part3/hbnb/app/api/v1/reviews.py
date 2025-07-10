@@ -66,16 +66,27 @@ class ReviewList(Resource):
         # Vérification anti-double review
         all_reviews = facade.get_reviews_by_place(data["place_id"])
         for review in all_reviews:
-            user_id_cmp = review["user_id"] if isinstance(review, dict) else getattr(review, "user_id", None)
+            if isinstance(review, dict):
+                user_id_cmp = review.get("user_id")
+            else:
+                user_id_cmp = getattr(review, "user_id", None)
+            if not user_id_cmp:
+                continue  # on saute les reviews mal formées
             if user_id_cmp == user_id:
                 return {"error": "You have already reviewed this place"}, 400
 
+
         try:
             result = facade.create_review(data)
-            # Toujours renvoyer un dict (jamais un objet SQLAlchemy)
-            return result if isinstance(result, dict) else result.__dict__, 201
+    # Accepte dict ou objet ORM avec .id
+            if not result or (not isinstance(result, dict) and not hasattr(result, "id")):
+               return {"error": "Internal server error: Review not created"}, 500
+    # Transforme en dict pour compatibilité API
+            review_dict = result if isinstance(result, dict) else result.__dict__
+            return review_dict, 201
         except Exception as e:
             return {"error": str(e)}, 400
+
 
 @api.route("/<string:review_id>")
 class ReviewItem(Resource):

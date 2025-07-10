@@ -10,13 +10,11 @@ from app.schemas.review import ReviewResponseSchema
 
 from pydantic import BaseModel, Field
 
-
 class _ReviewValidator(BaseModel):
     text: str = Field(..., min_length=1)
     rating: int = Field(..., ge=1, le=5)
     user_id: str
     place_id: str
-
 
 class ReviewService:
     def __init__(self, review_repo, user_repo, place_repo):
@@ -28,6 +26,9 @@ class ReviewService:
         return datetime.now()
 
     def _serialize(self, review):
+        # Vérification: l'objet a bien un id après insertion
+        if not getattr(review, "id", None):
+            print("ERREUR: review sans id =>", review)
         return ReviewResponseSchema(
             id=review.id,
             text=review.text,
@@ -51,39 +52,42 @@ class ReviewService:
         if not place:
             raise ValueError("place not found")
 
-        # --- Règle 1 : pas le droit de reviewer son propre lieu
-        # ATTENTION : adapte selon ta structure Place (ici owner_id attendu !)
+        # Règle 1 : pas le droit de reviewer son propre lieu
         owner_id = getattr(place, "owner_id", None)
         if not owner_id and hasattr(place, "owner") and hasattr(place.owner, "id"):
             owner_id = place.owner.id
         if owner_id == validated.user_id:
             raise ValueError("You cannot review your own place")
 
-        # --- Règle 2 : pas deux reviews pour le même lieu/user
+        # Règle 2 : pas deux reviews pour le même lieu/user
         for review in self.review_repo.get_all():
             if (
-                review.user_id == validated.user_id
-                and review.place_id == validated.place_id
+                getattr(review, "user_id", None) == validated.user_id
+                and getattr(review, "place_id", None) == validated.place_id
             ):
                 raise ValueError("You have already reviewed this place")
 
         review = Review(
             text=validated.text,
             rating=validated.rating,
-            user_id=validated.user_id,    # <-- la clé étrangère
+            user_id=validated.user_id,
             place_id=validated.place_id,
         )
-        self.review_repo.add(review)
+        review = self.review_repo.add(review)
+        print("DEBUG après add review:", vars(review))
+        if not getattr(review, "id", None):
+            print("WARNING: Review créé mais pas d'id après add!:", review)
+            return {"error": "Internal server error: Review not created"}
         return self._serialize(review)
 
     def get_review(self, review_id):
         review = self.review_repo.get(review_id)
-        # PATCH ICI : si review est None ou a un id None (donc "faux" objet après delete)
         if not review or not getattr(review, "id", None):
             return None
         return self._serialize(review)
 
     def get_all_reviews(self):
+        # On renvoie juste la liste de reviews sérialisées
         return [self._serialize(r) for r in self.review_repo.get_all()]
 
     def get_reviews_by_place(self, place_id):
@@ -92,7 +96,7 @@ class ReviewService:
         return [
             self._serialize(r)
             for r in self.review_repo.get_all()
-            if r.place_id == place_id
+            if getattr(r, "place_id", None) == place_id
         ]
 
     def update_review(self, review_id, data):

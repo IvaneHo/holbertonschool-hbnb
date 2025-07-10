@@ -6,6 +6,7 @@ class SQLAlchemyRepository:
         from app import db
         db.session.add(obj)
         db.session.commit()
+        db.session.refresh(obj)
         return obj
 
     def get(self, obj_id):
