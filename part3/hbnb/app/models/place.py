@@ -25,12 +25,13 @@ class Place(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-
     amenities = db.relationship(
         "Amenity",
         secondary=place_amenity,
-        backref="places"
-    )
+        backref="places",
+        lazy='selectin'  # améliore les requêtes massives
+)
+
     
     
     def __repr__(self):

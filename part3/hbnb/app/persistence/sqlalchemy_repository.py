@@ -14,6 +14,7 @@ class SQLAlchemyRepository:
 
     def get_all(self):
         return self.model.query.all()
+
     def get_by_attribute(self, attr_name, attr_value):
         return self.model.query.filter(getattr(self.model, attr_name) == attr_value).first()
 
@@ -21,12 +22,12 @@ class SQLAlchemyRepository:
         from app import db
         obj = self.get(obj_id)
         if obj:
-           for key, value in data.items():
-            if key == "amenities":
-                # Ne jamais setter ici : doit être fait côté service avec des objets SQLAlchemy, pas des IDs
-                continue
-            setattr(obj, key, value)
-            db.session.commit()
+            for key, value in data.items():
+                if key == "amenities":
+                    # On ne modifie JAMAIS la relation ici ! 
+                    continue
+                setattr(obj, key, value)
+            db.session.commit()  # Commit après la boucle
         return obj
 
     def delete(self, obj_id):

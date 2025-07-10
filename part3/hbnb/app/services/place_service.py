@@ -31,7 +31,8 @@ class PlaceService:
 
     def _get_amenity_objs(self, amenity_ids: list) -> List[Amenity]:
         """Retourne la liste des objets Amenity correspondant aux IDs fournis."""
-        return [self.amenity_repo.get(a_id) for a_id in amenity_ids if self.amenity_repo.get(a_id)]
+        # Surtout ne jamais insérer None
+        return [a for a in (self.amenity_repo.get(a_id) for a_id in amenity_ids) if a]
 
     def create_place(self, data: dict) -> dict:
         owner_id = data.get("owner_id")
@@ -43,7 +44,7 @@ class PlaceService:
         if data["price"] < 0:
             raise ValueError("price must be non-negative")
 
-        # Création du lieu SANS amenities (clé non gérée ici)
+        # Création sans amenities pour l'instant
         place = Place(
             title=data["title"],
             description=data.get("description", ""),
@@ -54,17 +55,14 @@ class PlaceService:
         )
         self.place_repo.add(place)
 
-        # Ajout des amenities (Many-to-Many), mais ne PAS passer au repo !
+        # Ajout Many-to-Many amenities (ID => objet)
         if "amenities" in data and isinstance(data["amenities"], list):
             amenity_objs = self._get_amenity_objs(data["amenities"])
-            # Ajoute seulement ceux qui n'y sont pas déjà
-            for amenity in amenity_objs:
-                if amenity and amenity not in place.amenities:
-                    place.amenities.append(amenity)
-            # Flush sur la session SQLAlchemy pour appliquer la relation
-            self.place_repo.update(place.id, {})  # aucun champ à modifier (juste commit)
+            # Ajoute uniquement les objets, jamais des str
+            place.amenities = amenity_objs
+            self.place_repo.update(place.id, {})  # force flush sans modifier d'autres champs
 
-        # Recharge l'objet pour avoir toutes les relations à jour
+        # Recharge les données pour avoir amenities OK
         place = self.place_repo.get(place.id)
         amenities_names = [a.name for a in getattr(place, "amenities", [])]
 
@@ -100,27 +98,25 @@ class PlaceService:
         ).model_dump(mode="json")
 
     def get_all_places(self) -> List[dict]:
-        res = []
-        for place in self.place_repo.get_all():
-            try:
-                amenities_names = [a.name for a in getattr(place, "amenities", [])]
-                res.append(
-                    PlaceResponseSchema(
-                        id=place.id,
-                        title=place.title,
-                        description=place.description,
-                        price=place.price,
-                        latitude=place.latitude,
-                        longitude=place.longitude,
-                        owner_id=place.owner_id,
-                        amenities=amenities_names,
-                        created_at=str(place.created_at) if hasattr(place, "created_at") else "",
-                        updated_at=str(place.updated_at) if hasattr(place, "updated_at") else "",
-                    ).model_dump(mode="json")
-                )
-            except ValidationError:
-                continue
-        return res
+        places = self.place_repo.get_all()
+        result = []
+        for place in places:
+            amenities_names = [a.name for a in getattr(place, "amenities", [])]
+            result.append(
+            PlaceResponseSchema(
+                id=place.id,
+                title=place.title,
+                description=place.description,
+                price=place.price,
+                latitude=place.latitude,
+                longitude=place.longitude,
+                owner_id=place.owner_id,
+                amenities=amenities_names,
+                created_at=str(place.created_at) if hasattr(place, "created_at") else "",
+                updated_at=str(place.updated_at) if hasattr(place, "updated_at") else "",
+            ).model_dump(mode="json")
+        )
+            return result
 
     def update_place(self, place_id: str, data: dict) -> Optional[dict]:
         place = self.place_repo.get(place_id)
@@ -132,7 +128,7 @@ class PlaceService:
         except ValidationError:
             raise ValueError("Invalid update data")
 
-        # Gestion des coordonnées
+        # Gestion coordonnées
         if validated.latitude is not None:
             self._validate_coords(validated.latitude, place.longitude)
             place.latitude = validated.latitude
@@ -151,10 +147,11 @@ class PlaceService:
         if validated.description is not None:
             place.description = validated.description.strip()
 
-        data = data.copy()  # Pour éviter de modifier le dict initial
-        # Si amenities est fourni, on l'applique et on ne passe pas la clé au repo
+        data = data.copy()  # sécurité
+        # Amenity update : on ne passe PAS la clé "amenities" au repo
         if "amenities" in data and isinstance(data["amenities"], list):
-            place.amenities = self._get_amenity_objs(data["amenities"])
+            amenity_objs = self._get_amenity_objs(data["amenities"])
+            place.amenities = amenity_objs
             data.pop("amenities", None)
 
         self.place_repo.update(place_id, data)
