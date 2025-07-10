@@ -15,6 +15,7 @@ from app.models.review import Review
 from app.models.amenity import Amenity
 
 from app.services.review_service import ReviewService
+from app.services.amenity_service import AmenityService  # AJOUT
 
 class HBnBFacade:
     """Couche d'accès unique aux services métier utilisée par les routes API."""
@@ -25,7 +26,8 @@ class HBnBFacade:
         self.review_repo = ReviewRepository()
         self.amenity_repo = AmenityRepository()
 
-        # Instanciation du ReviewService avec les bons repos
+        self.amenity_service = AmenityService(self.amenity_repo)  # AJOUT
+
         self.review_service = ReviewService(
             self.review_repo,
             self.user_repo,
@@ -71,28 +73,26 @@ class HBnBFacade:
         return self.place_repo.delete(place_id)
 
     # -------------------------------- AMENITY ------------------------------ #
+    # --- Délégation totale à AmenityService, tout est déjà JSON serializable ! ---
 
-    def create_amenity(self, data: dict) -> Amenity:
-        amenity = Amenity(**data)
-        self.amenity_repo.add(amenity)
-        return amenity
+    def create_amenity(self, data: dict) -> dict:
+        return self.amenity_service.create_amenity(data)
 
-    def get_amenity(self, amenity_id: str) -> Optional[Amenity]:
-        return self.amenity_repo.get(amenity_id)
+    def get_amenity(self, amenity_id: str) -> Optional[dict]:
+        return self.amenity_service.get_amenity(amenity_id)
 
-    def get_all_amenities(self) -> List[Amenity]:
-        return self.amenity_repo.get_all()
+    def get_all_amenities(self) -> List[dict]:
+        return self.amenity_service.get_all_amenities()
 
-    def update_amenity(self, amenity_id: str, data: dict) -> Optional[Amenity]:
-        return self.amenity_repo.update(amenity_id, data)
+    def update_amenity(self, amenity_id: str, data: dict) -> Optional[dict]:
+        return self.amenity_service.update_amenity(amenity_id, data)
 
     def delete_amenity(self, amenity_id: str):
-        return self.amenity_repo.delete(amenity_id)
+        return self.amenity_service.repo.delete(amenity_id)
 
     # -------------------------------- REVIEW ------------------------------- #
 
     def create_review(self, data: dict) -> Review:
-        # Option : utiliser le ReviewService pour bénéficier des règles métier
         return self.review_service.create_review(data)
 
     def get_review(self, review_id: str) -> Optional[Review]:
@@ -109,7 +109,6 @@ class HBnBFacade:
 
     def get_reviews_by_place(self, place_id):
         return self.review_service.get_reviews_by_place(place_id)
-
 
 # Instance globale utilisée par les routes
 facade = HBnBFacade()

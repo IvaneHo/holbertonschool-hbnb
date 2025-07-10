@@ -1,17 +1,17 @@
 from typing import Optional, List
 from datetime import datetime
 from pydantic import ValidationError
+from app.models.amenity import Amenity
 
-from app.models.amenity import AmenityORM  # <-- Only ORM
+
 from app.schemas.amenity import (
     AmenitySchema,
     AmenityUpdateSchema,
     AmenityResponseSchema,
 )
-# On utilise un repo SQLAlchemy (passe-le depuis la facade !)
 
 class AmenityService:
-    def __init__(self, repo):  # Pas de type InMemory ici
+    def __init__(self, repo):
         self.repo = repo
 
     def _now(self) -> datetime:
@@ -23,13 +23,12 @@ class AmenityService:
         except ValidationError:
             raise ValueError("name is required (max 50 characters)")
 
-        amenity = AmenityORM(
+        amenity = Amenity(
             name=validated.name,
             description=getattr(validated, "description", "")
         )
         self.repo.add(amenity)
 
-        # Après ajout, il faut peut-être faire un commit si pas géré ailleurs :
         if hasattr(self.repo, "commit"):
             self.repo.commit()
 
