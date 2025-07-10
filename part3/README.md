@@ -279,11 +279,12 @@ To test protected endpoints (admin/user only), follow these steps directly in th
 
 **1. Obtain a JWT Token via Login**
 
-    Scroll down to the auth section.
+Scroll down to the auth section.
 
-    Click on the POST /api/v1/auth/login endpoint.
+Click on the POST /api/v1/auth/login endpoint.
 
-    Click Try it out and provide :
+Click Try it out and provide :
+
 
 ```
 {
@@ -291,6 +292,7 @@ To test protected endpoints (admin/user only), follow these steps directly in th
   "password": "12345678"
 }
 ```
+
 Click Execute.
 
 Copy the returned access_token value from the response.
