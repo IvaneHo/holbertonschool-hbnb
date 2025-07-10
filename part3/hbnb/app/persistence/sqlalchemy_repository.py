@@ -21,8 +21,11 @@ class SQLAlchemyRepository:
         from app import db
         obj = self.get(obj_id)
         if obj:
-            for key, value in data.items():
-                setattr(obj, key, value)
+           for key, value in data.items():
+            if key == "amenities":
+                # Ne jamais setter ici : doit être fait côté service avec des objets SQLAlchemy, pas des IDs
+                continue
+            setattr(obj, key, value)
             db.session.commit()
         return obj
 

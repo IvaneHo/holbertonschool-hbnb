@@ -3,10 +3,10 @@ from typing import List, Optional
 
 from pydantic import ValidationError
 
-from app.models.place import PlaceORM
+from app.models.place import Place
 from app.models.amenity import Amenity
 from app.models.user import User
-from app.schemas.place import PlaceResponseSchema, PlaceUpdateSchema, PlaceSchema
+from app.schemas.place import PlaceResponseSchema, PlaceUpdateSchema
 from app.persistence.sqlalchemy_repository import SQLAlchemyRepository
 
 class PlaceService:
@@ -16,7 +16,7 @@ class PlaceService:
         user_repo: Optional[SQLAlchemyRepository] = None,
         amenity_repo: Optional[SQLAlchemyRepository] = None,
     ):
-        self.place_repo = place_repo or SQLAlchemyRepository(PlaceORM)
+        self.place_repo = place_repo or SQLAlchemyRepository(Place)
         self.user_repo = user_repo or SQLAlchemyRepository(User)
         self.amenity_repo = amenity_repo or SQLAlchemyRepository(Amenity)
 
@@ -29,9 +29,11 @@ class PlaceService:
         if not (-180 <= lon <= 180):
             raise ValueError("longitude must be between -180 and 180")
 
+    def _get_amenity_objs(self, amenity_ids: list) -> List[Amenity]:
+        """Retourne la liste des objets Amenity correspondant aux IDs fournis."""
+        return [self.amenity_repo.get(a_id) for a_id in amenity_ids if self.amenity_repo.get(a_id)]
+
     def create_place(self, data: dict) -> dict:
-        # On suppose que data est déjà validé par Pydantic côté API (PlaceSchema)
-        # On vérifie l'owner
         owner_id = data.get("owner_id")
         owner = self.user_repo.get(owner_id)
         if not owner:
@@ -41,8 +43,8 @@ class PlaceService:
         if data["price"] < 0:
             raise ValueError("price must be non-negative")
 
-        # On ne gère pas encore la jointure amenities <-> place en ORM (à ajouter si tu veux)
-        place = PlaceORM(
+        # Création du lieu SANS amenities (clé non gérée ici)
+        place = Place(
             title=data["title"],
             description=data.get("description", ""),
             price=data["price"],
@@ -50,17 +52,22 @@ class PlaceService:
             longitude=data["longitude"],
             owner_id=owner_id,
         )
-
         self.place_repo.add(place)
 
-        # Tu peux charger les amenities en extra si tu veux, pour l’API (pas persisté ici)
-        amenities_names = []
-        for a_id in data.get("amenities", []):
-            amenity = self.amenity_repo.get(a_id)
-            if amenity:
-                amenities_names.append(amenity.name)
+        # Ajout des amenities (Many-to-Many), mais ne PAS passer au repo !
+        if "amenities" in data and isinstance(data["amenities"], list):
+            amenity_objs = self._get_amenity_objs(data["amenities"])
+            # Ajoute seulement ceux qui n'y sont pas déjà
+            for amenity in amenity_objs:
+                if amenity and amenity not in place.amenities:
+                    place.amenities.append(amenity)
+            # Flush sur la session SQLAlchemy pour appliquer la relation
+            self.place_repo.update(place.id, {})  # aucun champ à modifier (juste commit)
 
-        # Création du schéma Pydantic pour la sortie
+        # Recharge l'objet pour avoir toutes les relations à jour
+        place = self.place_repo.get(place.id)
+        amenities_names = [a.name for a in getattr(place, "amenities", [])]
+
         return PlaceResponseSchema(
             id=place.id,
             title=place.title,
@@ -78,7 +85,7 @@ class PlaceService:
         place = self.place_repo.get(place_id)
         if not place:
             return None
-        # Ici tu charges aussi les amenities si besoin
+        amenities_names = [a.name for a in getattr(place, "amenities", [])]
         return PlaceResponseSchema(
             id=place.id,
             title=place.title,
@@ -87,7 +94,7 @@ class PlaceService:
             latitude=place.latitude,
             longitude=place.longitude,
             owner_id=place.owner_id,
-            amenities=[],  # À implémenter : jointure many-to-many SQLAlchemy
+            amenities=amenities_names,
             created_at=str(place.created_at) if hasattr(place, "created_at") else "",
             updated_at=str(place.updated_at) if hasattr(place, "updated_at") else "",
         ).model_dump(mode="json")
@@ -96,6 +103,7 @@ class PlaceService:
         res = []
         for place in self.place_repo.get_all():
             try:
+                amenities_names = [a.name for a in getattr(place, "amenities", [])]
                 res.append(
                     PlaceResponseSchema(
                         id=place.id,
@@ -105,7 +113,7 @@ class PlaceService:
                         latitude=place.latitude,
                         longitude=place.longitude,
                         owner_id=place.owner_id,
-                        amenities=[],  # Idem ci-dessus
+                        amenities=amenities_names,
                         created_at=str(place.created_at) if hasattr(place, "created_at") else "",
                         updated_at=str(place.updated_at) if hasattr(place, "updated_at") else "",
                     ).model_dump(mode="json")
@@ -124,10 +132,10 @@ class PlaceService:
         except ValidationError:
             raise ValueError("Invalid update data")
 
+        # Gestion des coordonnées
         if validated.latitude is not None:
             self._validate_coords(validated.latitude, place.longitude)
             place.latitude = validated.latitude
-
         if validated.longitude is not None:
             self._validate_coords(place.latitude, validated.longitude)
             place.longitude = validated.longitude
@@ -143,11 +151,15 @@ class PlaceService:
         if validated.description is not None:
             place.description = validated.description.strip()
 
-        # amenities à gérer côté SQLAlchemy si tu as une association
+        data = data.copy()  # Pour éviter de modifier le dict initial
+        # Si amenities est fourni, on l'applique et on ne passe pas la clé au repo
+        if "amenities" in data and isinstance(data["amenities"], list):
+            place.amenities = self._get_amenity_objs(data["amenities"])
+            data.pop("amenities", None)
 
         self.place_repo.update(place_id, data)
-        # Recharge le place après update
         place = self.place_repo.get(place_id)
+        amenities_names = [a.name for a in getattr(place, "amenities", [])]
         return PlaceResponseSchema(
             id=place.id,
             title=place.title,
@@ -156,7 +168,7 @@ class PlaceService:
             latitude=place.latitude,
             longitude=place.longitude,
             owner_id=place.owner_id,
-            amenities=[],  # Idem
+            amenities=amenities_names,
             created_at=str(place.created_at) if hasattr(place, "created_at") else "",
             updated_at=str(place.updated_at) if hasattr(place, "updated_at") else "",
         ).model_dump(mode="json")
