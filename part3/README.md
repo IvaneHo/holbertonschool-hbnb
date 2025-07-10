@@ -322,7 +322,7 @@ Note: You can log out by clicking Logout in the same Authorize popup.
 
 
 
-![Diagramme Mermaid](mermaid-diagram-2025-07-03-113340.svg)
+
 
 
 
