@@ -13,7 +13,7 @@ def run_test():
     db.create_all()
 
     print("\n--- Création des objets ---")
-    admin = User(first_name="Admin", last_name="Test", email="admin@hbnb.fr", password="azerty", is_admin=True)
+    admin = User(first_name="Admin", last_name="Test", email="admin@hbnb.fr", password="12345678", is_admin=True)
     user = User(first_name="Jean", last_name="Client", email="jean@hbnb.fr", password="123456")
     db.session.add_all([admin, user])
     db.session.commit()

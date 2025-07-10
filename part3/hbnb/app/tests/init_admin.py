@@ -7,26 +7,25 @@ from app.models.user import User
 
 def create_admin():
     admin_email = "admin@hbnb.fr"
-    admin_password = "12345678"  # mets un mot de passe fort ou en variable d'env
-    # Vérifie si un admin existe déjà
-    existing = User.query.filter_by(email=admin_email).first()
-    if existing:
-        print(f"L'admin {admin_email} existe déjà.")
-        return
+    admin_password = "12345678"
+    # Supprime tout admin existant pour garantir le hashage clean
+    admin = User.query.filter_by(email=admin_email).first()
+    if admin:
+        db.session.delete(admin)
+        db.session.commit()
 
     admin = User(
         first_name="Admin",
         last_name="HBNB",
         email=admin_email,
-        password=admin_password,
+        password=admin_password,  # Mot de passe EN CLAIR
         is_admin=True
     )
     db.session.add(admin)
     db.session.commit()
-    print(f"Admin créé : {admin_email}")
+    print(f"Admin créé/réinitialisé : {admin_email}")
 
 if __name__ == "__main__":
-    # --- C'est cette ligne qui change tout ---
-    app = create_app()  # ← ou l'import de ton objet app si il existe
+    app = create_app()
     with app.app_context():
         create_admin()

@@ -3,6 +3,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 import unittest
 from app import db, create_app
+from config import TestingConfig  # <- Ajoute ça !
+
 from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
@@ -11,11 +13,10 @@ from app.models.amenity import Amenity
 class TestRelationships(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Configure une app de test et reset la base avant les tests
-        cls.app = create_app()
+        # On passe la config DE TEST à la factory !
+        cls.app = create_app(config_class=TestingConfig)
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
-        db.drop_all()
         db.create_all()
 
     @classmethod
@@ -25,7 +26,6 @@ class TestRelationships(unittest.TestCase):
         cls.app_context.pop()
 
     def setUp(self):
-        # Nettoyage avant chaque test individuel
         db.session.rollback()
         for tbl in reversed(db.metadata.sorted_tables):
             db.session.execute(tbl.delete())
@@ -35,12 +35,10 @@ class TestRelationships(unittest.TestCase):
         user = User(first_name="Alice", last_name="Wonder", email="alice@hbnb.fr", password="secret")
         db.session.add(user)
         db.session.commit()
-
         place1 = Place(title="Château", description="Beau", price=100, latitude=10, longitude=10, owner_id=user.id)
         place2 = Place(title="Cabane", description="Rustique", price=50, latitude=20, longitude=20, owner_id=user.id)
         db.session.add_all([place1, place2])
         db.session.commit()
-
         self.assertEqual(len(user.places), 2)
         self.assertIn(place1, user.places)
         self.assertEqual(place1.owner, user)
@@ -55,7 +53,6 @@ class TestRelationships(unittest.TestCase):
         review = Review(text="Parfait", rating=5, place_id=place.id, user_id=user.id)
         db.session.add(review)
         db.session.commit()
-
         self.assertIn(review, place.reviews)
         self.assertEqual(review.place, place)
 
@@ -69,7 +66,6 @@ class TestRelationships(unittest.TestCase):
         review = Review(text="Bien situé", rating=4, place_id=place.id, user_id=user.id)
         db.session.add(review)
         db.session.commit()
-
         self.assertIn(review, user.reviews)
         self.assertEqual(review.user, user)
 
@@ -87,21 +83,18 @@ class TestRelationships(unittest.TestCase):
         place.amenities.append(amenity1)
         place.amenities.append(amenity2)
         db.session.commit()
-
         self.assertIn(amenity1, place.amenities)
         self.assertIn(amenity2, place.amenities)
         self.assertIn(place, amenity1.places)
         self.assertIn(place, amenity2.places)
 
     def test_foreign_keys_and_constraints(self):
-        # Vérifie les types et contraintes FK
         user = User(first_name="Joe", last_name="Root", email="joe@hbnb.fr", password="root")
         db.session.add(user)
         db.session.commit()
         place = Place(title="Cottage", description="Cosy", price=70, latitude=7, longitude=7, owner_id=user.id)
         db.session.add(place)
         db.session.commit()
-        # Essaye de créer une review sans place_id (doit échouer)
         with self.assertRaises(Exception):
             review = Review(text="No place!", rating=3, place_id=None, user_id=user.id)
             db.session.add(review)
@@ -109,7 +102,6 @@ class TestRelationships(unittest.TestCase):
             db.session.rollback()
 
     def test_schema_is_created(self):
-        # Vérifie que toutes les tables existent
         inspector = db.inspect(db.engine)
         tables = inspector.get_table_names()
         for t in ["users", "places", "reviews", "amenities", "place_amenity"]:

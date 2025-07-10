@@ -3,7 +3,7 @@ import requests
 BASE_URL = "http://127.0.0.1:5000/api/v1"
 
 # Identifiants d'admin
-ADMIN_EMAIL = "admin@ivane.com"
+ADMIN_EMAIL = "admin@hbnb.fr"
 ADMIN_PASS = "12345678"
 
 def pretty(r):

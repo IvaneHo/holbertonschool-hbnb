@@ -4,7 +4,7 @@ BASE_URL = "http://127.0.0.1:5000/api/v1"
 
 # Identifiants admin à ADAPTER selon ceux dans ta base :
 ADMIN_LOGIN = {
-    "email": "admin@ivane.com",
+    "email": "admin@hbnb.fr",
     "password": "12345678"  # DOIT être celui utilisé lors de la création en base
 }
 
@@ -22,6 +22,20 @@ def admin_token():
     assert r.status_code == 200, f"Admin login failed: {r.status_code}, {r.text}"
     return r.json()["access_token"]
 
+def delete_user_if_exists(email, admin_token):
+    url = f"{BASE_URL}/users/"
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    resp = requests.get(url, headers=headers)
+    if resp.status_code != 200:
+        print("Impossible de récupérer la liste des users :", resp.status_code, resp.text)
+        return
+    for user in resp.json():
+        if user["email"] == email:
+            uid = user["id"]
+            del_resp = requests.delete(f"{url}{uid}", headers=headers)
+            print(f"User {email} supprimé :", del_resp.status_code)
+            return
+
 def register(token):
     url = f"{BASE_URL}/users/"
     headers = {"Authorization": f"Bearer {token}"}
@@ -38,6 +52,7 @@ def login():
 if __name__ == "__main__":
     print("----- Login admin & register user -----")
     token = admin_token()
+    delete_user_if_exists(NEW_USER["email"], token)
     register(token)
     print("\n----- Login user -----")
     login()
