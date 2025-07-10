@@ -10,5 +10,7 @@ class Amenity(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
+    # Pas besoin de relationship() ici si déjà présent dans Place avec backref="places"
+
     def __repr__(self):
         return f"<Amenity {self.id} {self.name}>"

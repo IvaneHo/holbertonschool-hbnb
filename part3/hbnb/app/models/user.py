@@ -13,6 +13,20 @@ class User(BaseModel):
     password = db.Column(db.String(256), nullable=False)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
+    # --- RELATIONS ---
+    places = db.relationship(
+        "Place",
+        backref="owner",
+        cascade="all, delete-orphan",
+        lazy='selectin'
+    )
+    reviews = db.relationship(
+        "Review",
+        backref="user",
+        cascade="all, delete-orphan",
+        lazy='selectin'
+    )
+
     def __init__(self, first_name, last_name, email, password, is_admin=False):
         if not first_name or len(first_name) > 50:
             raise ValueError("Le prénom est requis et doit faire max 50 caractères")
