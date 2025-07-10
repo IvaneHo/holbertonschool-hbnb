@@ -319,6 +319,7 @@ Note: You can log out by clicking Logout in the same Authorize popup.
 
 
 
+<img width="893" height="904" alt="image" src="https://github.com/user-attachments/assets/c0e7adf6-3586-4cb8-a28a-ccfdc346c5fd" />
 
 
 
