@@ -1,6 +1,6 @@
 from app import db
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # Table d'association Many-to-Many Place <-> Amenity
@@ -21,8 +21,8 @@ class Place(db.Model):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     owner_id = db.Column(db.String(36), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
 
     amenities = db.relationship(
