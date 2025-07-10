@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Interface abstraite définissant les opérations d'un repository générique
 
@@ -81,4 +81,4 @@ class InMemoryRepository(Repository):
 
     def _now(self):
         # Retourne l'heure actuelle UTC
-        return datetime.utcnow()
+        return datetime.now(timezone.utc)()

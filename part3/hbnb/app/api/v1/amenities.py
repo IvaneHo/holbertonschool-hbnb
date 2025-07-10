@@ -38,7 +38,7 @@ class AmenityListResource(Resource):
     @api.marshal_with(amenity_response_model, as_list=True)
     def get(self):
         """Retrieve all amenities"""
-        amenities = facade.get_all_amenities()  # <- Liste de dict déjà prêts
+        amenities = facade.get_all_amenities()  
         return amenities, 200
 
     @api.expect(amenity_model, validate=True)
@@ -53,7 +53,7 @@ class AmenityListResource(Resource):
         if not data or not data.get("name") or not data.get("name").strip():
             return {"error": "name is required (max 50 characters)"}, 400
         try:
-            result = facade.create_amenity(data)  # <- Déjà un dict prêt
+            result = facade.create_amenity(data)  
             return result, 201
         except Exception as e:
             return {"error": str(e)}, 400
@@ -65,7 +65,7 @@ class AmenityResource(Resource):
         result = facade.get_amenity(amenity_id)
         if not result or result.get("id") is None:
             return {"error": "Amenity not found"}, 404
-        return result, 200  # <- Juste dict, pas de .model_dump()
+        return result, 200  
 
     @api.expect(amenity_partial_model, validate=True)
     @jwt_required()
@@ -80,6 +80,6 @@ class AmenityResource(Resource):
             return {"error": "Amenity not found"}, 404
         try:
             updated = facade.update_amenity(amenity_id, request.json)
-            return updated, 200  # <- Juste dict, pas de .model_dump()
+            return updated, 200 
         except Exception as e:
             return {"error": str(e)}, 400

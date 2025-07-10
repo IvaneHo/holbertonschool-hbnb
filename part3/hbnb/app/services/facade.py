@@ -15,7 +15,7 @@ from app.models.review import Review
 from app.models.amenity import Amenity
 
 from app.services.review_service import ReviewService
-from app.services.amenity_service import AmenityService  # AJOUT
+from app.services.amenity_service import AmenityService  
 
 class HBnBFacade:
     """Couche d'accès unique aux services métier utilisée par les routes API."""
@@ -26,7 +26,7 @@ class HBnBFacade:
         self.review_repo = ReviewRepository()
         self.amenity_repo = AmenityRepository()
 
-        self.amenity_service = AmenityService(self.amenity_repo)  # AJOUT
+        self.amenity_service = AmenityService(self.amenity_repo)  
 
         self.review_service = ReviewService(
             self.review_repo,
@@ -73,7 +73,7 @@ class HBnBFacade:
         return self.place_repo.delete(place_id)
 
     # -------------------------------- AMENITY ------------------------------ #
-    # --- Délégation totale à AmenityService, tout est déjà JSON serializable ! ---
+   
 
     def create_amenity(self, data: dict) -> dict:
         return self.amenity_service.create_amenity(data)

@@ -1,5 +1,5 @@
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import ValidationError
 from app.models.amenity import Amenity
 
@@ -15,7 +15,7 @@ class AmenityService:
         self.repo = repo
 
     def _now(self) -> datetime:
-        return datetime.utcnow()
+        return datetime.now(timezone.utc)()
 
     def create_amenity(self, data: dict) -> dict:
         try:

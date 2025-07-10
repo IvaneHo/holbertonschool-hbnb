@@ -7,7 +7,7 @@ api = Namespace("protected", description="JWT protected endpoint")
 class ProtectedResource(Resource):
     @jwt_required()
     def get(self):
-        user_id = get_jwt_identity()   # user_id (str)
+        user_id = get_jwt_identity()   
         claims = get_jwt()
         is_admin = claims.get("is_admin", False)
         return {

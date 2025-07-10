@@ -32,5 +32,5 @@ config = {
     'development': DevelopmentConfig,
     'default': DevelopmentConfig,
     'production': ProductionConfig,
-    'testing': TestingConfig  # Ajout ici !
+    'testing': TestingConfig  
 }

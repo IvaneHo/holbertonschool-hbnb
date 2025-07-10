@@ -23,7 +23,7 @@ place_model = api.model(
         "price": fields.Float(required=True, description="Price per night (non-negative)"),
         "latitude": fields.Float(required=True, description="Latitude between -90 and 90"),
         "longitude": fields.Float(required=True, description="Longitude between -180 and 180"),
-        # Pas d'owner_id !
+        
         "amenities": fields.List(fields.String, required=True, description="List of Amenity IDs"),
     },
 )
@@ -36,7 +36,7 @@ place_update_model = api.model(
         "price": fields.Float(description="Price per night (non-negative)"),
         "latitude": fields.Float(description="Latitude between -90 and 90"),
         "longitude": fields.Float(description="Longitude between -180 and 180"),
-        # Pas d'owner_id ici non plus !
+        
         "amenities": fields.List(fields.String, description="List of Amenity IDs"),
     },
 )
@@ -98,7 +98,7 @@ class PlaceResource(Resource):
             return {"error": "Unauthorized action"}, 403
 
         payload = api.payload.copy()
-        payload.pop("owner_id", None)  # Protection, même si jamais dans Swagger
+        payload.pop("owner_id", None)  
         try:
             updated_place = facade.update_place(place_id, payload)
             return PlaceResponseSchema.from_place(updated_place).dict(), 200

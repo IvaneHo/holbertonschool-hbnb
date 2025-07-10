@@ -94,7 +94,7 @@ class UserService:
             if field == "password":
                 if not isinstance(value, str) or len(value) < 8:
                     raise ValueError("Password must be at least 8 characters")
-                user.hash_password(value)   # Utilise la méthode du modèle !
+                user.hash_password(value)   
             else:
                 setattr(user, field, value)
 
