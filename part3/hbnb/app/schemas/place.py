@@ -8,7 +8,7 @@ from app.models.place import Place
 class PlaceSchema(BaseModel):
     title: constr(strip_whitespace=True, min_length=1, max_length=100)  # type: ignore
     description: constr(strip_whitespace=True, max_length=255)  # type: ignore
-    price: int
+    price: float
     latitude: float
     longitude: float
     owner_id: str
@@ -22,7 +22,7 @@ class PlaceSchema(BaseModel):
 class PlaceUpdateSchema(BaseModel):
     title: Optional[constr(strip_whitespace=True, min_length=1, max_length=100)] = None  # type: ignore
     description: Optional[constr(strip_whitespace=True, max_length=255)] = None  # type: ignore
-    price: Optional[int] = None
+    price: Optional[float] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     owner_id: Optional[str] = None
@@ -37,7 +37,7 @@ class PlaceResponseSchema(BaseModel):
     id: str
     title: str
     description: str
-    price: int
+    price: float
     latitude: float
     longitude: float
     owner_id: str
