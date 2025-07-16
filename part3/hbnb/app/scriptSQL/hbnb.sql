@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS place_amenity (
 -- Données initiales
 -- ===============================
 
--- ADMIN (Argon2 hash pour "admin1234" — adapte si besoin)
+-- ADMIN (Argon2 hash)
 INSERT OR IGNORE INTO users (id, first_name, last_name, email, password, is_admin) VALUES
 ('36c9050e-ddd3-4c3b-9731-9f487208bbc1', 'Admin', 'HBnB', 'admin@hbnb.io',
 '$argon2id$v=19$m=65536,t=3,p=4$ylUtdC2wJ7BluyfA1SgRgQ$ql1KWi6nsgAbTlpvqG7OQZHSCN+Zk4f8Hf0+RWQWv/w', TRUE);
@@ -75,7 +75,7 @@ INSERT OR IGNORE INTO amenities (id, name) VALUES
 ('a7b57d82-f6ad-4958-914a-4c4bfa633f7b', 'Air Conditioning');
 
 -- ===============================
--- TESTS CRUD (facultatif)
+-- TESTS CRUD
 -- ===============================
 
 -- 1. Créer un user test
