@@ -61,10 +61,12 @@ class PlaceService:
             # Ajoute uniquement les objets, jamais des str
             place.amenities = amenity_objs
             self.place_repo.update(place.id, {})  # force flush sans modifier d'autres champs
-
+            print("amenity_objs =", amenity_objs)
+            print("types =", [type(a) for a in amenity_objs])
         # Recharge les données pour avoir amenities OK
         place = self.place_repo.get(place.id)
         amenities_names = [a.name for a in getattr(place, "amenities", [])]
+        
 
         return PlaceResponseSchema(
             id=place.id,
@@ -98,25 +100,26 @@ class PlaceService:
         ).model_dump(mode="json")
 
     def get_all_places(self) -> List[dict]:
-        places = self.place_repo.get_all()
-        result = []
-        for place in places:
-            amenities_names = [a.name for a in getattr(place, "amenities", [])]
-            result.append(
-            PlaceResponseSchema(
-                id=place.id,
-                title=place.title,
-                description=place.description,
-                price=place.price,
-                latitude=place.latitude,
-                longitude=place.longitude,
-                owner_id=place.owner_id,
-                amenities=amenities_names,
-                created_at=str(place.created_at) if hasattr(place, "created_at") else "",
-                updated_at=str(place.updated_at) if hasattr(place, "updated_at") else "",
-            ).model_dump(mode="json")
-        )
-            return result
+         places = self.place_repo.get_all()
+         result = []
+         for place in places:
+             amenities_names = [a.name for a in getattr(place, "amenities", [])]
+             result.append(
+                 PlaceResponseSchema(
+                  id=place.id,
+                  title=place.title,
+                  description=place.description,
+                  price=place.price,
+                  latitude=place.latitude,
+                  longitude=place.longitude,
+                  owner_id=place.owner_id,
+                  amenities=amenities_names,
+                  created_at=str(place.created_at) if hasattr(place, "created_at") else "",
+                  updated_at=str(place.updated_at) if hasattr(place, "updated_at") else "",
+               ).model_dump(mode="json")
+            )
+         return result  
+
 
     def update_place(self, place_id: str, data: dict) -> Optional[dict]:
         place = self.place_repo.get(place_id)
