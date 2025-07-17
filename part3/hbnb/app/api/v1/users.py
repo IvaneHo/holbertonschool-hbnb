@@ -58,6 +58,7 @@ class UserList(Resource):
 
     @api.marshal_list_with(user_model_response)
     @api.response(200, "Users retrieved")
+    @jwt_required()
     def get(self):
         """Retrieve all users"""
         return facade.get_all_users(), 200
