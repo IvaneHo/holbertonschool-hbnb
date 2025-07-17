@@ -49,7 +49,7 @@ class UserList(Resource):
         """Register a new user (admin only)"""
         claims = get_jwt()
         if not claims.get("is_admin"):
-            return {"error": "Admin privileges required"}, 403
+             api.abort(403, "Admin privileges required")
         try:
             user = facade.create_user(api.payload)
             return user, 201
@@ -58,10 +58,14 @@ class UserList(Resource):
 
     @api.marshal_list_with(user_model_response)
     @api.response(200, "Users retrieved")
+    @api.response(403, "Admin privileges required")
     @jwt_required()
     def get(self):
-        """Retrieve all users"""
-        return facade.get_all_users(), 200
+       """Retrieve all users (admin only)"""
+       claims = get_jwt()
+       if not claims.get("is_admin"):
+            api.abort(403, "Admin privileges required")
+       return facade.get_all_users(), 200
 
 @api.route("/<string:user_id>")
 @api.doc(params={"user_id": "The ID of the user"})
@@ -69,12 +73,23 @@ class UserResource(Resource):
     @api.marshal_with(user_model_response)
     @api.response(200, "User found")
     @api.response(404, "User not found")
+    @api.response(403, "Unauthorized action")
+    @jwt_required()
     def get(self, user_id):
-        """Get user by ID"""
-        user = facade.get_user(user_id)
-        if not user:
-            api.abort(404, "User not found")
-        return user, 200
+       """
+         Get user by ID (admin or self only)
+       """
+       claims = get_jwt()
+       is_admin = claims.get("is_admin", False)
+       jwt_user = get_jwt_identity()
+
+       if not is_admin and user_id != jwt_user:
+           api.abort(403, "Admin privileges required")
+
+       user = facade.get_user(user_id)
+       if not user:
+           api.abort(404, "User not found")
+       return user, 200
 
     @api.expect(user_update_model, validate=True)
     @api.response(200, "User updated")
@@ -116,7 +131,7 @@ class UserResource(Resource):
             return marshal(user, user_model_response), 200
         except Exception as e:
             return {"error": str(e)}, 400
-
+""" 
     @api.expect(user_update_model, validate=True)
     @api.response(200, "User updated (PATCH)")
     @api.response(404, "User not found")
@@ -124,9 +139,9 @@ class UserResource(Resource):
     @api.response(403, "Unauthorized action")
     @jwt_required()
     def patch(self, user_id):
-        """
+        
         Patch user by ID (user only, can't change email or password except admin)
-        """
+        
         claims = get_jwt()
         jwt_user = get_jwt_identity()
         is_admin = claims.get("is_admin", False)
@@ -153,7 +168,7 @@ class UserResource(Resource):
             user = facade.update_user(user_id, payload)
             return marshal(user, user_model_response), 200
         except Exception as e:
-            return {"error": str(e)}, 400
+            return {"error": str(e)}, 400 """
 
 def register_user_models(api):
     api.models[user_create_model.name] = user_create_model
