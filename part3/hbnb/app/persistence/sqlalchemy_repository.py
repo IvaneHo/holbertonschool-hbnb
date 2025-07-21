@@ -24,10 +24,10 @@ class SQLAlchemyRepository:
         if obj:
             for key, value in data.items():
                 if key == "amenities":
-                    # On ne modifie JAMAIS la relation ici ! 
+                    
                     continue
                 setattr(obj, key, value)
-            db.session.commit()  # Commit après la boucle
+            db.session.commit()  
         return obj
 
     def delete(self, obj_id):

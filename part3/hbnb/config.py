@@ -13,7 +13,6 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     SECRET_KEY = "prod_secret_key"
-    # Tu peux aussi mettre un fichier différent pour la prod si tu veux
     SQLALCHEMY_DATABASE_URI = 'sqlite:///hbnb.db'
 
 config = {
@@ -25,7 +24,7 @@ config = {
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"  # DB en RAM uniquement pour chaque test
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"  
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 config = {

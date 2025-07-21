@@ -19,8 +19,8 @@ user_update_model = api.model(
     {
         "first_name": fields.String(description="First name"),
         "last_name": fields.String(description="Last name"),
-        "email": fields.String(description="Email address"),  # Admin seulement
-        "password": fields.String(description="New password (min 8 caractères)", min_length=8),  # Admin seulement
+        "email": fields.String(description="Email address"),  
+        "password": fields.String(description="New password (min 8 caractères)", min_length=8),  
     },
 )
 
@@ -105,14 +105,14 @@ class UserResource(Resource):
         jwt_user = get_jwt_identity()
         is_admin = claims.get("is_admin", False)
 
-        # Pour utilisateur classique, vérifier ownership
+       
         if not is_admin:
             if user_id != jwt_user:
                 return {"error": "Unauthorized action"}, 403
 
         payload = api.payload.copy()
 
-        # Seul un admin peut changer email ou password
+        
         if not is_admin and ("email" in payload or "password" in payload):
             return {"error": "You cannot modify email or password"}, 400
 
@@ -120,7 +120,7 @@ class UserResource(Resource):
         if not user_exists:
             return {"error": "User not found"}, 404
 
-        # Pour l'admin, vérifier l'unicité email
+        
         if is_admin and "email" in payload:
             existing = facade.get_user_by_email(payload["email"])
             if existing and existing.id != user_id:
@@ -132,6 +132,7 @@ class UserResource(Resource):
         except Exception as e:
             return {"error": str(e)}, 400
 """ 
+patch test 
     @api.expect(user_update_model, validate=True)
     @api.response(200, "User updated (PATCH)")
     @api.response(404, "User not found")

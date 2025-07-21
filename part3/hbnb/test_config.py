@@ -7,7 +7,7 @@ app_dev = create_app()
 print("[DEV] DEBUG =", app_dev.config["DEBUG"])
 print("[DEV] SECRET_KEY =", app_dev.config["SECRET_KEY"])
 
-# Application en mode production (si tu as ajouté la classe ProductionConfig dans config.py)
+# Application en mode production 
 try:
     app_prod = create_app("config.ProductionConfig")
     print("[PROD] DEBUG =", app_prod.config["DEBUG"])

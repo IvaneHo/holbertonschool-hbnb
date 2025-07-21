@@ -57,7 +57,7 @@ class HBnBFacade:
     # -------------------------------- PLACE -------------------------------- #
 
     def create_place(self, data: dict) -> dict:
-        # Appelle le vrai service métier qui gère amenities (mapping IDs -> objets)
+        
         return self.place_service.create_place(data)
 
     def get_place(self, place_id: str) -> Optional[dict]:
@@ -95,7 +95,7 @@ class HBnBFacade:
         return self.review_service.create_review(data)
 
     def get_review(self, review_id: str) -> Optional[dict]:
-    # Utilise bien la logique de sérialisation du service
+    
         return self.review_service.get_review(review_id)
     def get_reviews_by_place(self, place_id: str) -> list:
         return self.review_service.get_reviews_by_place(place_id)

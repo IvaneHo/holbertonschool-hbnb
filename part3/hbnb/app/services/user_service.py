@@ -48,7 +48,7 @@ class UserService:
 
         user_data = data.copy()
         user_data["email"] = email  # normalisé
-        user_data["password"] = password  # <-- PAS de hash ici, hash fait dans User
+        user_data["password"] = password  # PAS de hash ici, hash fait dans User
         user = User(**user_data)
         self.repo.add(user)
         from app import db

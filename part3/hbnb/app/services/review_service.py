@@ -87,7 +87,7 @@ class ReviewService:
         return self._serialize(review)
 
     def get_all_reviews(self):
-        # On renvoie juste la liste de reviews sérialisées
+       
         return [self._serialize(r) for r in self.review_repo.get_all()]
 
     def get_reviews_by_place(self, place_id):

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 
-# Interface abstraite définissant les opérations d'un repository générique
+
 
 
 class Repository(ABC):
@@ -36,7 +36,7 @@ class Repository(ABC):
         pass
 
 
-# Implémentation concrète d'un repository en mémoire (dictionnaire Python)
+
 class InMemoryRepository(Repository):
     def __init__(self):
         # Stockage interne des objets par ID

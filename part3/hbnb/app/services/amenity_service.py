@@ -33,7 +33,7 @@ class AmenityService:
         # Ajout : recharge l'objet depuis la BDD si possible (pour avoir created_at/updated_at à jour)
         if hasattr(self.repo, "refresh"):
             self.repo.refresh(amenity)
-        # Patch : fallback si None
+        
         return AmenityResponseSchema(
             id=amenity.id,
             name=amenity.name,

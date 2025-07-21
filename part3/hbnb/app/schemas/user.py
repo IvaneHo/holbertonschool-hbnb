@@ -26,7 +26,7 @@ class UserCreateSchema(BaseModel):
     def validate_password_strength(cls, value: str) -> str:
         if len(value) < 8:
             raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
-        # Tu peux ajouter d'autres règles ici
+        
         return value
 
 # Schéma pour la modification (update), mot de passe optionnel
@@ -51,7 +51,7 @@ class UserUpdateSchema(BaseModel):
             raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
         return value
 
-# Schéma enrichi utilisé pour les réponses API (jamais de password !)
+
 class UserResponseSchema(BaseModel):
     id: Optional[str]
     first_name: str
@@ -62,5 +62,5 @@ class UserResponseSchema(BaseModel):
     is_admin: Optional[bool] = False
 
     class Config:
-        from_attributes = True  # Permet d'accepter les objets ORM
+        from_attributes = True  
 
