@@ -58,11 +58,11 @@ class PlaceService:
         # Ajout Many-to-Many amenities (ID => objet)
         if "amenities" in data and isinstance(data["amenities"], list):
             amenity_objs = self._get_amenity_objs(data["amenities"])
+            print("DEBUG amenity_objs:", amenity_objs)
+            print("DEBUG types:", [type(a) for a in amenity_objs])
             # Ajoute uniquement les objets, jamais des str
             place.amenities = amenity_objs
             self.place_repo.update(place.id, {})  # force flush sans modifier d'autres champs
-            print("amenity_objs =", amenity_objs)
-            print("types =", [type(a) for a in amenity_objs])
         # Recharge les données pour avoir amenities OK
         place = self.place_repo.get(place.id)
         amenities_names = [a.name for a in getattr(place, "amenities", [])]
