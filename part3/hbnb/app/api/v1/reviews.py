@@ -43,8 +43,7 @@ class ReviewList(Resource):
     @api.marshal_list_with(review_response)
     def get(self):
         """List all reviews (public)"""
-        # Toujours renvoyer une liste de dicts
-        return [r if isinstance(r, dict) else r.__dict__ for r in facade.get_all_reviews()]
+        return facade.get_all_reviews()
 
     @api.expect(review_model, validate=True)
     @api.response(201, "Review successfully created")
@@ -56,37 +55,27 @@ class ReviewList(Resource):
         data = api.payload.copy()
         data["user_id"] = user_id
 
-        
         place = facade.get_place(data["place_id"])
         if not place:
             return {"error": "Place not found"}, 400
         if getattr(place, "owner_id", None) == user_id:
             return {"error": "You cannot review your own place"}, 400
 
-       
         all_reviews = facade.get_reviews_by_place(data["place_id"])
         for review in all_reviews:
-            if isinstance(review, dict):
-                user_id_cmp = review.get("user_id")
-            else:
-                user_id_cmp = getattr(review, "user_id", None)
+            user_id_cmp = review.get("user_id")
             if not user_id_cmp:
                 continue  
             if user_id_cmp == user_id:
                 return {"error": "You have already reviewed this place"}, 400
 
-
         try:
             result = facade.create_review(data)
-    
-            if not result or (not isinstance(result, dict) and not hasattr(result, "id")):
+            if not result or not result.get("id"):
                return {"error": "Internal server error: Review not created"}, 500
-    
-            review_dict = result if isinstance(result, dict) else result.__dict__
-            return review_dict, 201
+            return result, 201
         except Exception as e:
             return {"error": str(e)}, 400
-
 
 @api.route("/<string:review_id>")
 class ReviewItem(Resource):
@@ -98,8 +87,7 @@ class ReviewItem(Resource):
         review = facade.get_review(review_id)
         if not review:
             return {"error": "Review not found"}, 404
-        
-        return review if isinstance(review, dict) else review.__dict__, 200
+        return review, 200
 
     @api.expect(review_update_model, validate=True)
     @api.marshal_with(review_response)
@@ -116,13 +104,12 @@ class ReviewItem(Resource):
         review = facade.get_review(review_id)
         if not review:
             return {"error": "Review not found"}, 404
-        review_dict = review if isinstance(review, dict) else review.__dict__
-        if not is_admin and review_dict["user_id"] != user_id:
+        if not is_admin and review["user_id"] != user_id:
             return {"error": "Unauthorized action"}, 403
 
         try:
             updated = facade.update_review(review_id, api.payload)
-            return updated if isinstance(updated, dict) else updated.__dict__, 200
+            return updated, 200
         except Exception as e:
             return {"error": str(e)}, 400
 
@@ -138,12 +125,11 @@ class ReviewItem(Resource):
         review = facade.get_review(review_id)
         if not review:
             return {"error": "Review not found"}, 404
-        review_dict = review if isinstance(review, dict) else review.__dict__
-        if not is_admin and review_dict["user_id"] != user_id:
+        if not is_admin and review["user_id"] != user_id:
             return {"error": "Unauthorized action"}, 403
         try:
             result = facade.delete_review(review_id)
-            return result if isinstance(result, dict) else {"message": "review deleted"}, 200
+            return result, 200
         except Exception as e:
             return {"error": str(e)}, 400
 
@@ -156,7 +142,6 @@ class ReviewsByPlace(Resource):
         """Get reviews by place ID (public)"""
         try:
             reviews = facade.get_reviews_by_place(place_id)
-            
-            return [r if isinstance(r, dict) else r.__dict__ for r in reviews], 200
+            return reviews, 200
         except Exception as e:
             return {"error": str(e)}, 404

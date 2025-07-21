@@ -91,23 +91,23 @@ class HBnBFacade:
 
     # -------------------------------- REVIEW ------------------------------- #
 
-    def create_review(self, data: dict) -> Review:
+    def create_review(self, data: dict) -> dict:
         return self.review_service.create_review(data)
 
-    def get_review(self, review_id: str) -> Optional[Review]:
-        return self.review_repo.get(review_id)
+    def get_review(self, review_id: str) -> Optional[dict]:
+    # Utilise bien la logique de sérialisation du service
+        return self.review_service.get_review(review_id)
+    def get_reviews_by_place(self, place_id: str) -> list:
+        return self.review_service.get_reviews_by_place(place_id)
+    def get_all_reviews(self) -> list:
+        return self.review_service.get_all_reviews()
 
-    def get_all_reviews(self) -> List[Review]:
-        return self.review_repo.get_all()
-
-    def update_review(self, review_id: str, data: dict) -> Optional[Review]:
-        return self.review_repo.update(review_id, data)
+    def update_review(self, review_id: str, data: dict) -> Optional[dict]:
+        return self.review_service.update_review(review_id, data)
 
     def delete_review(self, review_id: str):
-        return self.review_repo.delete(review_id)
+        return self.review_service.delete_review(review_id)
 
-    def get_reviews_by_place(self, place_id):
-        return self.review_service.get_reviews_by_place(place_id)
 
 # Instance globale utilisée par les routes
 facade = HBnBFacade()
