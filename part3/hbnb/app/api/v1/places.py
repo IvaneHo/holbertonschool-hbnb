@@ -55,8 +55,8 @@ class PlaceList(Resource):
         data = api.payload.copy()
         data["owner_id"] = get_current_user_id()
         try:
-            created_place = facade.create_place(data)
-            return PlaceResponseSchema.from_place(created_place).dict(), 201
+            result = facade.create_place(data)
+            return result, 201
         except Exception as e:
             return {"error": str(e)}, 400
 
@@ -64,8 +64,9 @@ class PlaceList(Resource):
     @api.doc(description="Retrieve the full list of places (public endpoint)")
     def get(self):
         """Retrieve all places (public)"""
-        places = facade.get_all_places()  # <--- le bon appel !
-        return [PlaceResponseSchema.from_place(p).dict() for p in places], 200
+        places = facade.get_all_places() 
+        return list(places), 200
+
 
 @api.route("/<string:place_id>")
 class PlaceResource(Resource):

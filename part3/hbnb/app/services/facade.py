@@ -14,6 +14,7 @@ from app.models.place import Place
 from app.models.review import Review
 from app.models.amenity import Amenity
 
+from app.services.place_service import PlaceService
 from app.services.review_service import ReviewService
 from app.services.amenity_service import AmenityService  
 
@@ -26,8 +27,8 @@ class HBnBFacade:
         self.review_repo = ReviewRepository()
         self.amenity_repo = AmenityRepository()
 
+        self.place_service = PlaceService(self.place_repo, self.user_repo, self.amenity_repo)
         self.amenity_service = AmenityService(self.amenity_repo)  
-
         self.review_service = ReviewService(
             self.review_repo,
             self.user_repo,
@@ -55,26 +56,24 @@ class HBnBFacade:
 
     # -------------------------------- PLACE -------------------------------- #
 
-    def create_place(self, data: dict) -> Place:
-        place = Place(**data)
-        self.place_repo.add(place)
-        return place
+    def create_place(self, data: dict) -> dict:
+        # Appelle le vrai service métier qui gère amenities (mapping IDs -> objets)
+        return self.place_service.create_place(data)
 
-    def get_place(self, place_id: str) -> Optional[Place]:
-        return self.place_repo.get(place_id)
+    def get_place(self, place_id: str) -> Optional[dict]:
+        return self.place_service.get_place(place_id)
 
-    def get_all_places(self) -> List[Place]:
-        return self.place_repo.get_all()
+    def get_all_places(self) -> List[dict]:
+        return self.place_service.get_all_places()
 
-    def update_place(self, place_id: str, data: dict) -> Optional[Place]:
-        return self.place_repo.update(place_id, data)
+    def update_place(self, place_id: str, data: dict) -> Optional[dict]:
+        return self.place_service.update_place(place_id, data)
 
     def delete_place(self, place_id: str):
         return self.place_repo.delete(place_id)
 
     # -------------------------------- AMENITY ------------------------------ #
    
-
     def create_amenity(self, data: dict) -> dict:
         return self.amenity_service.create_amenity(data)
 
