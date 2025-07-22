@@ -57,23 +57,30 @@ class ReservationListResource(Resource):
     @api.marshal_with(reservation_response_model, code=201)
     @jwt_required()
     def post(self):
-        """Create a reservation"""
+        print("DEBUG: POST /api/v1/reservations/ called")
         try:
             payload = api.payload or {}
             data = ReservationCreateSchema(**payload).model_dump()
         except Exception as e:
+            print("DEBUG: Exception in schema:", e)
             return {"error": f"Invalid input: {e}"}, 400
 
         user_id = get_current_user_id()
+        print("DEBUG: user_id resolved =", user_id)
         try:
             res = facade.create_reservation(user_id, data)
+            print("DEBUG: Reservation created =", res)
             return res, 201
         except PermissionError as e:
+            print("DEBUG: PermissionError", e)
             return {"error": str(e)}, 403
         except ValueError as e:
+            print("DEBUG: ValueError", e)
             return {"error": str(e)}, 400
         except Exception as e:
+            print("DEBUG: Unexpected error", e)
             return {"error": f"Unexpected error: {e}"}, 400
+
 
 @api.route("/<string:res_id>")
 class ReservationResource(Resource):
