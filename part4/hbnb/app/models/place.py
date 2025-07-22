@@ -36,6 +36,6 @@ class Place(db.Model):
         cascade="all, delete-orphan",
         lazy='selectin'
     )
-
+    reservations = db.relationship("Reservation", back_populates="place")
     def __repr__(self):
         return f"<Place {self.id} {self.title}>"

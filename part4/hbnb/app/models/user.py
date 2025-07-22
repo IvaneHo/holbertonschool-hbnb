@@ -26,6 +26,7 @@ class User(BaseModel):
         cascade="all, delete-orphan",
         lazy='selectin'
     )
+    reservations = db.relationship("Reservation", back_populates="user")
 
     def __init__(self, first_name, last_name, email, password, is_admin=False):
         if not first_name or len(first_name) > 50:
