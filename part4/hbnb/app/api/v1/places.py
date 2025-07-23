@@ -74,7 +74,7 @@ class PlaceResource(Resource):
         place = facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
-        return PlaceResponseSchema.from_place(place).dict(), 200
+        return place, 200
 
     @api.expect(place_update_model, validate=True)
     @api.response(200, "Place successfully updated")
@@ -98,7 +98,7 @@ class PlaceResource(Resource):
         payload.pop("owner_id", None)  
         try:
             updated_place = facade.update_place(place_id, payload)
-            return PlaceResponseSchema.from_place(updated_place).dict(), 200
+            return updated_place, 200
         except Exception as e:
             return {"error": str(e)}, 400
 

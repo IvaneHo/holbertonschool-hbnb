@@ -11,7 +11,7 @@ class BaseModel(db.Model):
 
     def save(self):
         """Met à jour l'instance et enregistre dans la base"""
-        self.updated_at = datetime.now(timezone.utc)()
+        self.updated_at = datetime.now(timezone.utc)
         db.session.add(self)
         db.session.commit()
 
@@ -20,5 +20,5 @@ class BaseModel(db.Model):
         for key, value in data.items():
             if hasattr(self, key):
                 setattr(self, key, value)
-        self.updated_at = datetime.now(timezone.utc)()
+        self.updated_at = datetime.now(timezone.utc)
         db.session.commit()

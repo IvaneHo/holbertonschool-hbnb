@@ -6,7 +6,7 @@ from datetime import datetime
 
 class ReservationService:
     def __init__(self):
-        self.repo = ReservationRepository()  # <-- C'est ce qu'il manquait !
+        self.repo = ReservationRepository()
 
     def create_reservation(self, user_id, data):
         # Conversion des dates si besoin
@@ -14,7 +14,12 @@ class ReservationService:
             data['start_date'] = datetime.strptime(data['start_date'], "%Y-%m-%d").date()
         if isinstance(data['end_date'], str):
             data['end_date'] = datetime.strptime(data['end_date'], "%Y-%m-%d").date()
-
+        
+        # ----------- VÉRIFICATION DE CONFLIT -----------
+        if self.repo.exists_conflict(data['place_id'], data['start_date'], data['end_date']):
+            raise ValueError("Ce logement est déjà réservé sur cette période.")
+        # ----------- FIN VÉRIFICATION DE CONFLIT -------
+        
         reservation = Reservation(
             user_id=user_id,
             place_id=data['place_id'],
