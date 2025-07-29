@@ -3,6 +3,7 @@ from flask_restx import Api
 from flask_sqlalchemy import SQLAlchemy
 from config import DevelopmentConfig  
 from flask_jwt_extended import JWTManager, exceptions as jwt_exceptions
+from flask_cors import CORS  # <-- Ajout import CORS
 
 db = SQLAlchemy()
 jwt = JWTManager()
@@ -17,6 +18,7 @@ def create_app(config_class=DevelopmentConfig):
     
     db.init_app(app)
     jwt.init_app(app)
+    CORS(app)  
 
     # === HANDLERS D'ERREUR JWT personnalisés ===
     @app.errorhandler(jwt_exceptions.NoAuthorizationError)
