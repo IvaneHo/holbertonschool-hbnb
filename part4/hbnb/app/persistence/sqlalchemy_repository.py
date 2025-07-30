@@ -24,10 +24,9 @@ class SQLAlchemyRepository:
         if obj:
             for key, value in data.items():
                 if key == "amenities":
-                    
                     continue
                 setattr(obj, key, value)
-            db.session.commit()  
+            db.session.commit()
         return obj
 
     def delete(self, obj_id):
@@ -37,3 +36,11 @@ class SQLAlchemyRepository:
             db.session.delete(obj)
             db.session.commit()
         return obj
+
+    def flush(self):
+        from app import db
+        db.session.flush()
+
+    def commit(self):
+        from app import db
+        db.session.commit()

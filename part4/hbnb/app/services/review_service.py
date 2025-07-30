@@ -24,11 +24,17 @@ class ReviewService:
 
     def _now(self):
         return datetime.now()
-
     def _serialize(self, review):
-        # Vérification: l'objet a bien un id après insertion
-        if not getattr(review, "id", None):
-            print("ERREUR: review sans id =>", review)
+        # Récupère prénom + nom de l'utilisateur lié à la review (anonymat possible ensuite côté JS)
+        user_first_name = None
+        user_last_name = None
+        if hasattr(self, "user_repo"):
+            user = self.user_repo.get(getattr(review, "user_id", None))
+            if user:
+                if hasattr(user, "first_name"):
+                    user_first_name = user.first_name
+                if hasattr(user, "last_name"):
+                    user_last_name = user.last_name
         return ReviewResponseSchema(
             id=review.id,
             text=review.text,
@@ -37,6 +43,8 @@ class ReviewService:
             place_id=review.place_id,
             created_at=review.created_at,
             updated_at=review.updated_at,
+            user_first_name=user_first_name,
+            user_last_name=user_last_name
         ).model_dump(mode="json")
 
     def create_review(self, data):

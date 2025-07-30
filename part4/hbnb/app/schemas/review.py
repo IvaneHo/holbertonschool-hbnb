@@ -20,10 +20,17 @@ class ReviewResponseSchema(BaseModel):
     place_id: str
     created_at: datetime
     updated_at: datetime
+    user_first_name: Optional[str] = None
+    user_last_name: Optional[str] = None
 
     @classmethod
     def from_orm(cls, review):
-        """Crée une ReviewResponseSchema depuis un objet Review SQLAlchemy"""
+        """Crée une ReviewResponseSchema depuis un objet Review SQLAlchemy + attache prénom/nom si user chargé"""
+        user_first_name = ""
+        user_last_name = ""
+        if hasattr(review, "user") and review.user:
+            user_first_name = getattr(review.user, "first_name", "") or ""
+            user_last_name = getattr(review.user, "last_name", "") or ""
         return cls(
             id=review.id,
             text=review.text,
@@ -32,6 +39,8 @@ class ReviewResponseSchema(BaseModel):
             place_id=review.place_id,
             created_at=review.created_at,
             updated_at=review.updated_at,
+            user_first_name=user_first_name,
+            user_last_name=user_last_name,
         )
 
     class Config:

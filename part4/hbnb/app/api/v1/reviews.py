@@ -25,6 +25,7 @@ review_update_model = api.model(
     },
 )
 
+
 review_response = api.model(
     "ReviewResponse",
     {
@@ -35,8 +36,11 @@ review_response = api.model(
         "place_id": fields.String,
         "created_at": fields.String,
         "updated_at": fields.String,
+        "user_first_name": fields.String,  # Ajouté
+        "user_last_name": fields.String,   # (optionnel)
     },
 )
+
 
 @api.route("/")
 class ReviewList(Resource):

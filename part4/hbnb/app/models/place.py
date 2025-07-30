@@ -1,6 +1,7 @@
 from app import db
 import uuid
 from datetime import datetime, timezone
+from app.models.place_image import PlaceImage
 
 # Table d'association Many-to-Many Place <-> Amenity
 place_amenity = db.Table(
@@ -20,7 +21,7 @@ class Place(db.Model):
     owner_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
-
+    images = db.relationship("PlaceImage", backref="place", cascade="all, delete-orphan")
     # Many-to-Many
     amenities = db.relationship(
         "Amenity",

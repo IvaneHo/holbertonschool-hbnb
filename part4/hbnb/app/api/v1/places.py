@@ -11,7 +11,17 @@ def get_current_user_id():
     ident = get_jwt_identity()
     return ident if isinstance(ident, str) else ident.get("id")
 
+
+
 # --- MODELS ---
+
+place_image_model = api.model(
+    "PlaceImage",
+    {
+        "url": fields.String(required=True, description="URL of the image"),
+        "caption": fields.String(description="Image caption", required=False),
+    }
+)
 
 place_model = api.model(
     "Place",
@@ -22,6 +32,7 @@ place_model = api.model(
         "latitude": fields.Float(required=True, description="Latitude between -90 and 90"),
         "longitude": fields.Float(required=True, description="Longitude between -180 and 180"),
         "amenities": fields.List(fields.String, required=True, description="List of Amenity IDs"),
+        "images": fields.List(fields.Nested(place_image_model), required=False, description="List of images (url/caption)"),
     },
 )
 
@@ -34,6 +45,7 @@ place_update_model = api.model(
         "latitude": fields.Float(description="Latitude between -90 and 90"),
         "longitude": fields.Float(description="Longitude between -180 and 180"),
         "amenities": fields.List(fields.String, description="List of Amenity IDs"),
+        "images": fields.List(fields.Nested(place_image_model), required=False, description="List of images (url/caption)"),
     },
 )
 

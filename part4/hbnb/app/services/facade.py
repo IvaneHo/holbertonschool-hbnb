@@ -9,11 +9,14 @@ from app.persistence.place_repository import PlaceRepository
 from app.persistence.review_repository import ReviewRepository
 from app.persistence.amenity_repository import AmenityRepository
 from app.persistence.reservation_repository import ReservationRepository
-
+from app.persistence.place_image_repository import PlaceImageRepository
+ 
+  
 from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
 from app.models.amenity import Amenity
+from app.models.place_image import PlaceImage
 
 from app.services.place_service import PlaceService
 from app.services.review_service import ReviewService
@@ -30,8 +33,10 @@ class HBnBFacade:
         self.amenity_repo = AmenityRepository()
         self.reservation_repo = ReservationRepository()
         self.reservation_service = ReservationService()
-
-        self.place_service = PlaceService(self.place_repo, self.user_repo, self.amenity_repo)
+        self.place_image_repo = PlaceImageRepository()
+        
+        
+        self.place_service = PlaceService(self.place_repo, self.user_repo, self.amenity_repo , self.place_image_repo)
         self.amenity_service = AmenityService(self.amenity_repo)
         self.review_service = ReviewService(
             self.review_repo,
