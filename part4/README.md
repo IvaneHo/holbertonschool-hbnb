@@ -1,4 +1,4 @@
-# HBnB - Part 3 : Auth & DB
+# HBnB - Part 4 : Simple Web Client
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-2.x-blue.svg)
@@ -7,78 +7,129 @@
 
 ##  Overview
 
-This repository contains the backend for the **HBnB project - Part 3**.  
-It’s a complete RESTful API for a booking platform (like AirBnB), using **Flask**, **SQLAlchemy**, **JWT**, **Pydantic** for validation, and secure password hashing (Argon2).
+This project aims to complete and integrate a responsive front-end for the HBNB web application (an Airbnb clone), according to provided design specifications and full API connectivity.
 
-The project is designed with **clean architecture**: separate models, schemas, repository, business (service) layer, and API resources.  
-You will find all CRUD endpoints, authentication/authorization, and a full SQL schema—plus scripts and test coverage.
+Key deliverables:
 
+    Login form
+
+    List of Places (main page)
+
+    Place Details page
+
+    Add Review Form
 
 ##  Project Structure
 
 ```
-part3/hbnb/
-├── README.md
-├── config.py
-├── requirements.txt
-├── run.py
-├── create_tables.py
-├── hbnb.sql
-├── test_config.py
-├── instance/
-│   └── hbnb.dev.db
-├── app/
-│   ├── __init__.py
-│   ├── models/
+part4/hbnb/
+├── back/
+│   ├── README.md
+│   ├── requirements.txt
+│   ├── config.py
+│   ├── create_tables.py
+│   ├── run.py
+│   ├── test_config.py
+│   ├── instance/
+│   │   └── hbnb.dev.db
+│   ├── app/
 │   │   ├── __init__.py
-│   │   ├── base_model.py
-│   │   ├── user.py
-│   │   ├── place.py
-│   │   ├── amenity.py
-│   │   └── review.py
-│   ├── persistence/
-│   │   ├── __init__.py
-│   │   ├── sqlalchemy_repository.py
-│   │   ├── user_repository.py
-│   │   ├── place_repository.py
-│   │   ├── amenity_repository.py
-│   │   └── review_repository.py
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   ├── place.py
-│   │   ├── amenity.py
-│   │   └── review.py
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── facade.py
-│   │   ├── amenity_service.py
-│   │   └── review_service.py
-│   ├── api/
-│   │   └── v1/
-│   │       ├── __init__.py
-│   │       ├── users.py
-│   │       ├── places.py
-│   │       ├── amenities.py
-│   │       ├── reviews.py
-│   │       └── auth.py
-│   └── tests/
-│       ├── __init__.py
-│       ├── init_admin.py
-│       ├── test_access_control.py
-│       ├── test_entities_crud.py
-│       ├── test_login.py
-│       ├── test_relations.py
-│       ├── test_relationships.py
-│       ├── test_sqlalchemy_repository.py
-│       └── test_user_repository.py
-├── scriptSQL/
-│   └── hbnb.sql
+│   │   ├── README.md
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── amenity.py
+│   │   │   ├── base_model.py
+│   │   │   ├── place.py
+│   │   │   ├── place_image.py
+│   │   │   ├── reservation.py
+│   │   │   ├── review.py
+│   │   │   └── user.py
+│   │   ├── schemas/
+│   │   │   ├── __init__.py
+│   │   │   ├── amenity.py
+│   │   │   ├── place.py
+│   │   │   ├── reservation.py
+│   │   │   ├── review.py
+│   │   │   └── user.py
+│   │   ├── persistence/
+│   │   │   ├── __init__.py
+│   │   │   ├── amenity_repository.py
+│   │   │   ├── place_image_repository.py
+│   │   │   ├── place_repository.py
+│   │   │   ├── repository.py
+│   │   │   ├── reservation_repository.py
+│   │   │   ├── review_repository.py
+│   │   │   ├── sqlalchemy_repository.py
+│   │   │   └── user_repository.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── amenity_service.py
+│   │   │   ├── facade.py
+│   │   │   ├── place_service.py
+│   │   │   ├── reservation_service.py
+│   │   │   ├── review_service.py
+│   │   │   └── user_service.py
+│   │   ├── api/
+│   │   │   └── v1/
+│   │   ├── scriptSQL/
+│   │   │   └── hbnb.sql
+│   │   └── tests/
+│   │       ├── init_admin.py
+│   │       ├── test_access_control.py
+│   │       ├── test_entities_crud.py
+│   │       ├── test_hbnb.sql
+│   │       ├── test_login.py
+│   │       ├── test_relations.py
+│   │       ├── test_relationships.py
+│   │       ├── test_sqlalchemy_repository.py
+│   │       └── test_user_repository.py
+│   └── .venv/
+│       └── ... (environnement virtuel)
+├── front/
+│   ├── README.md
+│   └── static/
+│       ├── index.html
+│       ├── login.html
+│       ├── place.html
+│       ├── profile.html
+│       ├── scripts/
+│       │   ├── index.js
+│       │   ├── light.js
+│       │   ├── login.js
+│       │   ├── place.js
+│       │   └── profile.js
+│       ├── styles/
+│       │   ├── base.css
+│       │   ├── index.css
+│       │   ├── login.css
+│       │   ├── place.css
+│       │   ├── profile.css
+│       │   └── corbeille/
+│       └── images/
+│           ├── icon.png
+│           ├── icon_bath.png
+│           ├── icon_bed.png
+│           ├── icon_wifi.png
+│           ├── logo.png
+│           ├── logo0.1.png
+│           └── logo0.2.png
 
 
 ```
 
+Pages to Complete
 
+    Login (login.html):
+    Login form (email/password), connects to backend, handles JWT.
+
+    List of Places (index.html):
+    Displays all places as cards, dynamic filtering by price, API-connected.
+
+    Place Details (place.html):
+    Detailed view of a place, lists amenities and reviews, shows review form if authenticated.
+
+    Add Review:
+    Review submission form for authenticated users only.
 
 # Installation Guide
 To get started with the project, follow these simple steps:
@@ -89,7 +140,7 @@ First, clone the project and navigate into the correct directory:
 
 ```
 git clone https://github.com/IvaneHo/holbertonschool-hbnb.git
-cd holbertonschool-hbnb/part3/hbnb
+cd holbertonschool-hbnb/part4/hbnb/back
 ```
 
 
@@ -115,28 +166,6 @@ Once the virtual environment is active, install the dependencies with:
 pip install -r requirements.txt
 ```
 
-**Initialize the database**
-
-Create the instance directory if it doesn’t exist
-```
-mkdir -p instance
-```
-Load the schema and initial data from hbnb.sql into the development database
-```
-sqlite3 instance/hbnb.dev.db < app/scriptSQL/hbnb.sql
-```
-
-This will create tables (users, places, amenities, reviews, place_amenity, etc) and insert any provided seed data.
-
-**The instance/ Folder**
-
-This folder is where SQLite databases are stored (e.g., hbnb.dev.db)
-To reset your local database, just delete the file and re-import the schema
-
-```
-rm instance/hbnb.dev.db
-sqlite3 instance/hbnb.dev.db < app/scriptSQL/hbnb.sql
-```
 
 **Run the application**
 
@@ -145,187 +174,115 @@ Finally, from within the hbnb directory, you can launch the app by running:
 ```
 python run.py
 ```
+This command starts both the backend API and the static frontend server.
+Open your browser and go to: http://127.0.0.1:5000/.
 
-By default, the Flask app listens on http://127.0.0.1:5000/. The API root is typically at http://127.0.0.1:5000/api/v1/
-
-
-
-# API Usage
-
-HBnB’s API is accessed under the /api/v1/ prefix. Important endpoints include:
-
-    Authentication:
-
-        POST /api/v1/auth/login – Log in with JSON credentials {"email": "...", "password": "..."}. Returns an access_token (JWT) if successful.
-
-    Users:
-
-        GET /api/v1/users/ – List all users (admin-only).
-
-        POST /api/v1/users/ – Create a new user (admin-only). Supply JSON { "email": "", "password": "", "first_name": "", "last_name": "" }.
-
-        GET /api/v1/users/<id> – Retrieve a specific user.
-
-        PUT /api/v1/users/<id> – Update user fields (only the owner or an admin). Email and password typically cannot be changed via API for security.
-
-        DELETE /api/v1/users/<id> – Delete a user (owner or admin).
-
-    Places:
-
-        GET /api/v1/places/ – List all places.
-
-        POST /api/v1/places/ – Create a new place (authenticated user). JSON should include "title", "description", "price", "latitude", "longitude", etc.
-
-        GET /api/v1/places/<id> – Retrieve a specific place.
-
-        PUT /api/v1/places/<id> – Update a place (only the owner or admin).
-
-        
-
-    Amenities:
-
-        GET /api/v1/amenities/ – List all amenities.
-
-        POST /api/v1/amenities/ – Create a new amenity (admin-only). JSON: { "name": "", "description": "" }.
-
-        GET /api/v1/amenities/<id> – Retrieve a specific amenity.
-
-        PUT /api/v1/amenities/<id> – Update an amenity (admin-only).
-
-       
-
-    Reviews:
-
-        GET /api/v1/reviews/ – List all reviews.
-
-        POST /api/v1/reviews/ – Create a review (authenticated user). JSON: { "text": "", "rating": <int>, "place_id": <id> }. Note: users cannot review their own places, and cannot review the same place twice.
-
-        GET /api/v1/reviews/<id> – Retrieve a specific review.
-
-        PUT /api/v1/reviews/<id> – Update a review (only the review’s author or admin).
-
-        DELETE /api/v1/reviews/<id> – Delete a review (author or admin).
-
-
-
-
-
-
- **Test Files**
-
-You’ll find all test scripts inside the app/tests/ directory:
-
-    test_access_control.py
-
-    test_entities_crud.py
-
-    test_hbnb.sql
-
-    test_login.py
-
-    test_realations.py
-
-    test_relationships.py
-
-    test_sqlalchemy_repository.py
-
-    test_user_repository.py
-
-
-**Running Tests**
-
-Each test file can be executed individually using the following commands:
-
-```python
-python app/tests/test_access_control.py
-python app/tests/test_entities_crud.py
-python app/tests/test_login.py
-python app/tests/test_realations.py
-python app/tests/test_relationships.py
-python app/tests/test_sqlalchemy_repository.py
-python app/tests/test_user_repository.py
-```
-
-
+The frontend is available directly from this address (index.html, login.html, place.html, etc.)
+The API endpoints are available under /api/v1/
 
 ## Authentication
 
+**Login**
 
-Log in as admin to get a token
-```
-curl -X POST -H "Content-Type: application/json" \
-     -d '{"email":"admin@hbnb.fr","password":"12345678"}' \
-     http://127.0.0.1:5000/api/v1/auth/login
+Click on Login (or go to /login.html).
 
-```
-
-
-Use the token to create an amenity (admin-only)
-```
-curl -X POST -H "Authorization: Bearer <JWT_TOKEN>" -H "Content-Type: application/json" \
-     -d '{"name": "WiFi", "description": "High-speed internet"}' \
-     http://127.0.0.1:5000/api/v1/amenities
+Enter a valid email and password (must exist in the database).
 
 ```
-Password hashing (Argon2): User passwords are never stored in plain text. The app uses Argon2 (via Flask-Argon2) to hash passwords with a random salt. Argon2 is a memory-hard function and is considered very secure against attacks.
 
-
-
-
-
-# How to Log in as Admin in Swagger
-
-To test protected endpoints (admin/user only), follow these steps directly in the Swagger UI:
-
-**1. Obtain a JWT Token via Login**
-
-Scroll down to the auth section.
-
-Click on the POST /api/v1/auth/login endpoint.
-
-Click Try it out and provide :
+  email: testuser@hbnb.fr 
+  password:12345678
+  
+          or
+  
+  email: approuveur@hbnb.fr
+  password:12345678
 
 
 ```
-{
-  "email": "admin@hbnb.fr",
-  "password": "12345678"
-}
-```
 
-Click Execute.
+Click login.
 
-Copy the returned access_token value from the response.
+On success:
 
-**2. Authorize with the Token**
+    You are redirected to the main page.
 
-Click on the green Authorize button at the top right of the Swagger UI.
-
-In the popup, paste :
-
-Bearer <your_access_token_here>
-
-Click Authorize.
-
-**3. Test Protected Routes**
-
-You are now authenticated as admin in the Swagger UI.
-
-All endpoints that require authentication (and admin rights) will use your JWT automatically.
-
-Try to create an amenity or view all users—admin-only operations.
-
-Note: You can log out by clicking Logout in the same Authorize popup.
+    A session cookie with a JWT token is created.
 
 
+On failure:
 
-<img width="893" height="904" alt="image" src="https://github.com/user-attachments/assets/c0e7adf6-3586-4cb8-a28a-ccfdc346c5fd" />
+    An error message is displayed (invalid credentials).
 
 
 
 
 
+**View List of Places**
 
+From the homepage (/index.html or /), see the list of available places as cards.
+
+Each card shows:
+
+    Name of the place
+
+    Price per night
+
+    "View Details" button
+
+The list is loaded dynamically via the API.
+
+**Filter Places by Price**
+Use the price filter dropdown above the list
+
+The places list updates instantly, filtering out places over the selected price.
+
+
+**View Place Details**
+
+Click "View Details" on any place card.
+
+This opens the place details page (/place.html?id=PLACE_ID).
+
+The details page shows:
+
+    Full information about the place (price, amenities, description)
+
+    List of existing reviews
+
+    If you are logged in, a button
+
+
+**Add a Review**
+
+On the place details page, click "Add Review" or fill out the review form (only visible if authenticated).
+
+Write your review and submit.
+
+On success:
+
+    The review is added and displayed on the page.
+
+    A success message appears.
+
+If you are not logged in, you will be redirected to the login or index page.
+
+
+**Logout**
+
+    Click the logout button/link.
+
+    Your session cookie is deleted, and the login link/button reappears.
+
+**Check Authentication**
+
+    When logged in:
+
+        The login link is hidden, and you may see your profile or a logout link.
+
+    When not logged in:
+
+        The login link is shown, and features like "Add Review" are unavailable.
 
 ## Full requirements.txt (copy-paste-ready)
 
@@ -339,6 +296,7 @@ argon2-cffi==23.1.0
 pydantic[email]>=2.6.0,<3.0
 Werkzeug>=2.3.0
 pytest>=7.0.0,<8.0
+flask-cors==6.0.1
 ```
 
 
@@ -346,12 +304,11 @@ pytest>=7.0.0,<8.0
 
 ---
 
-## 👤 Authors
+## 👤 Author
 
-* Hamza Hammadi - https://github.com/Hamza-coder3011 
 * Ivane Bagashvili - https://github.com/IvaneHo
 * [Holberton School Dijon]  
-* Part 3: Auth & DB 
-* Date: 26 june to 11 July 2025  
+* Part 4: Simple Web Client 
+* Date: 17 july to 31 July 2025  
 
 ---
