@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - HBnB</title>
+  
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/login.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <link rel="icon" href="images/icon.png">
+</head>
+<body>
+  <header class="header-glass">
+    <a href="index.html">
+      <img src="images/logo.png" alt="HBnB Logo" class="logo-image">
+    </a>
+    <nav id="user-nav">
+      
+    </nav>
+  </header>
+
+  <main class="login-main-centered">
+    <form id="login-form" class="form-card login-card" autocomplete="on">
+      <div class="login-icon">&#128274;</div>
+      <h1 class="title-glow">Login</h1>
+      <label for="email">Email:</label>
+<input id="email" name="email" type="email" required autocomplete="username">
+<div id="email-error" style="color:#ff5d5d; margin-top:5px; min-height:18px;"></div>
+      <label for="password">Password:</label>
+      <input id="password" name="password" type="password" required autocomplete="current-password">
+      <button type="submit" class="neon-button login-btn">Login</button>
+      <div id="login-error" style="color:#ff5d5d;margin-top:14px;min-height:24px;"></div>
+    </form>
+  </main>
+
+  <footer class="footer-glass">
+    © 2025 All rights reserved
+    <button id="theme-toggle"></button>
+
+  </footer>
+  <script src="scripts/login.js"></script>
+  <script src="scripts/light.js"></script>
+</body>
+</html>

@@ -36,7 +36,7 @@ class Login(Resource):
 
         return {'access_token': access_token}, 200
 
-# === ENDPOINT /me POUR L'UTILISATEUR CONNECTÉ ===
+# ENDPOINT /me POUR L'UTILISATEUR CONNECTÉ
 
 @api.route('/me')
 class Me(Resource):

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>HBnB Places – Filtre de prix</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/index.css">
+  <link rel="icon" href="images/icon.png">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header-glass">
+    <a href="index.html"><img src="images/logo.png" alt="HBnB Logo" class="logo-image"></a>
+    <nav id="user-nav"></nav>
+  </header>
+
+  <h1 class="title-glow">Available Places</h1>
+
+  
+  <div class="price-slider-container">
+    <form id="price-filter-form" autocomplete="off" onsubmit="return false;">
+      <div class="slider-label-wrap">
+        <span class="slider-label">Price&nbsp;:</span>
+        <span id="slider-values"><span id="slider-min">0</span> $ — <span id="slider-max">10000</span> $</span>
+        <button id="slider-reset" type="button" title="Réinitialiser le filtre">⟲</button>
+      </div>
+      <div class="slider-bounds">
+        <span id="min-bound">0 $</span>
+        <div class="slider-track-wrap">
+          <input type="range" id="minRange" min="0" max="1000" value="0" step="1" aria-label="Prix minimum" />
+          <input type="range" id="maxRange" min="0" max="1000" value="10000" step="1" aria-label="Prix maximum" />
+          <div id="slider-track"></div>
+          <output for="minRange" id="thumb-min-label" class="thumb-label"></output>
+          <output for="maxRange" id="thumb-max-label" class="thumb-label"></output>
+        </div>
+        <span id="max-bound">10000 $</span>
+      </div>
+      <div class="slider-inputs">
+        <label>Min : <input type="number" id="input-min" min="0" max="10000" value="0"></label>
+        <label>Max : <input type="number" id="input-max" min="0" max="10000" value="10000"></label>
+      </div>
+    </form>
+    <div class="slider-result-count" id="result-count">0 places correspondent à votre recherche</div>
+  </div>
+
+  <main>
+    <div class="places-container">
+      <!-- JS injecte ici -->
+    </div>
+  </main>
+
+  <footer class="footer-glass">
+    © 2025 All rights reserved
+    <button id="theme-toggle" aria-label="Switch theme"></button>
+  </footer>
+  <script src="scripts/login.js"></script>
+  <script src="scripts/light.js"></script>
+  <script src="scripts/index.js"></script>
+</body>
+</html>

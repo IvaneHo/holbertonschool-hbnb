@@ -1,0 +1,115 @@
+
+
+.main-centered {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 90vh;
+}
+
+.profile-card {
+  margin-top: 48px;
+  background: rgba(34, 49, 63, 0.82);
+  box-shadow: 0 6px 38px #00fff844, 0 2px 18px #0005;
+  border-radius: 25px;
+  padding: 42px 36px 32px 36px;
+  max-width: 440px;
+  width: 100%;
+}
+
+.profile-card h1 {
+  margin-top: 0;
+  color: #fff;
+  font-size: 2.3rem;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow: 0 2px 8px #07fcff34;
+}
+
+.form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.form-card label {
+  color: #d4fbff;
+  font-weight: 600;
+  font-size: 1.08rem;
+  margin-bottom: 4px;
+}
+
+.form-card input[type="text"],
+.form-card input[type="email"] {
+  padding: 9px 13px;
+  font-size: 1.09rem;
+  border: none;
+  border-radius: 7px;
+  background: #232e38e0;
+  color: #d5fcff;
+  outline: none;
+  box-shadow: 0 2px 10px #0002;
+  transition: background 0.16s;
+}
+.form-card input:disabled {
+  background: #18303cbb;
+  color: #aac6cf;
+}
+
+.form-card button[type="submit"] {
+  margin-top: 12px;
+  padding: 11px 0;
+  font-size: 1.09rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #07fcff 20%, #06c7d7 90%);
+  color: #222;
+  box-shadow: 0 2px 14px #0ff9;
+  cursor: pointer;
+  transition: background 0.15s, color 0.18s;
+}
+.form-card button[type="submit"]:hover {
+  background: linear-gradient(90deg, #06c7d7 20%, #07fcff 90%);
+  color: #153a3f;
+}
+
+#logout-btn {
+  margin-top: 22px;
+  width: 100%;
+  padding: 10px 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 7px;
+  background: #e03442;
+  color: #fff;
+  box-shadow: 0 2px 12px #0004;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+#logout-btn:hover {
+  background: #ba2233;
+}
+
+#profile-message {
+  min-height: 24px;
+  text-align: center;
+  font-size: 1.04rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 600px) {
+  .main-centered {
+    padding: 0;
+  }
+  .profile-card {
+    max-width: 97vw;
+    padding: 23px 5vw 24px 5vw;
+    border-radius: 18px;
+  }
+  .profile-card h1 {
+    font-size: 1.4rem;
+  }
+}

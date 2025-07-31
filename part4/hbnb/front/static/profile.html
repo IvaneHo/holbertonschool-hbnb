@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile - HBnB</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/profile.css">
+  <link rel="icon" href="images/icon.png">
+</head>
+<body>
+  <header class="header-glass">
+    <a href="index.html"><img src="images/logo.png" alt="HBnB Logo" class="logo-image"></a>
+    <nav id="user-nav"></nav>
+  </header>
+  <main class="main-centered">
+    
+      
+  <div class="main-centered">
+  <div class="profile-card">
+    <h1>Profile</h1>
+    <form class="form-card" id="profile-form">
+      <label for="first_name">First Name</label>
+      <input type="text" id="first_name" name="first_name" required />
+      <label for="last_name">Last Name</label>
+      <input type="text" id="last_name" name="last_name" required />
+      <label for="email">Email (not editable)</label>
+      <input type="email" id="email" name="email" disabled />
+      <div id="profile-message"></div>
+      <button type="submit">Save changes</button>
+    </form>
+    <button id="logout-btn">Logout</button>
+  </div>
+</div>
+
+    
+  </main>
+  <footer class="footer-glass">
+    <p>&copy; 2025 HBnB. All rights reserved.</p>
+    <button id="theme-toggle"></button>
+  </footer>
+  <script src="scripts/login.js"></script>
+  <script src="scripts/profile.js"></script>
+  <script src="scripts/light.js"></script>
+</body>
+</html>

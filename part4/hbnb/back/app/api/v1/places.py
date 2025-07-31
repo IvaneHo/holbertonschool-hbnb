@@ -13,7 +13,7 @@ def get_current_user_id():
 
 
 
-# --- MODELS ---
+#  MODELS 
 
 place_image_model = api.model(
     "PlaceImage",
@@ -49,7 +49,7 @@ place_update_model = api.model(
     },
 )
 
-# --- ROUTES ---
+# ROUTES
 
 @api.route("/")
 class PlaceList(Resource):

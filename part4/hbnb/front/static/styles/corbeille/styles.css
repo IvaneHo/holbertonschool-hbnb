@@ -1,0 +1,426 @@
+html {
+  
+  background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Orbitron', sans-serif;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Header */
+.header-glass {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Main Content */
+main, .main-centered {
+  flex: 1 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  background: transparent;
+  padding: 0;
+}
+
+@media (max-width: 800px) {
+  main, .main-centered {
+    align-items: flex-start;
+  }
+}
+
+/* Container responsive (places list page) */
+.places-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 10px 60px;
+  box-sizing: border-box;
+}
+
+@media screen and (min-width: 900px) {
+  .places-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+    padding: 60px 50px 80px;
+  }
+}
+@media screen and (min-width: 1400px) {
+  .places-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 50px;
+    padding: 80px 120px 100px;
+    max-width: 1800px;
+  }
+}
+
+/* Individual Place Card (index) */
+.place-card.glass-card {
+  max-width: 95vw;
+  margin: 0 auto;
+}
+
+/* Page détails d'une place (détail/fiche) */
+.place-details {
+  margin: 60px auto;
+  padding: 30px;
+  max-width: 700px;
+  width: 100%;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.title-glow {
+  text-align: center;
+  font-size: 2.5rem;
+  margin: 40px 0 10px;
+  text-shadow: 0 0 10px #00f7ff;
+}
+
+/* Filters */
+.filter-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.filter-section select {
+  padding: 8px;
+  background-color: #1e1e2f;
+  border: 1px solid #444;
+  border-radius: 10px;
+  color: #fff;
+  min-width: 120px;
+  width: auto;
+}
+
+.place-info p {
+  margin: 10px 0;
+  line-height: 1.5;
+}
+
+.review-card {
+  margin: 20px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.3s;
+}
+.glass-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px #00f7ff33;
+}
+
+/* Button */
+.neon-button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #00f7ff;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  border-radius: 20px;
+  text-decoration: none;
+  transition: box-shadow 0.3s, transform 0.2s;
+}
+.neon-button:hover {
+  box-shadow: 0 0 10px #00f7ff, 0 0 20px #00f7ff;
+  transform: scale(1.05);
+}
+
+/* Footer toujours collé en bas */
+.footer-glass {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  font-size: 0.9rem;
+  margin-top: auto;
+}
+
+/* Logo */
+.logo-image {
+  height: 50px;
+  filter: drop-shadow(0 0 4px #00f7ff) drop-shadow(0 0 10px rgba(0, 247, 255, 0.3));
+  transition: transform 0.3s ease, filter 0.3s ease;
+  border-radius: 8px;
+}
+.logo-image:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 6px #00f7ff) drop-shadow(0 0 20px #00f7ff);
+}
+
+/* Add Review Form */
+.form-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  max-width: 500px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.form-card h2 {
+  text-align: center;
+  text-shadow: 0 0 10px #00f7ff;
+  margin-bottom: 20px;
+}
+.form-card label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+.form-card textarea,
+.form-card select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #444;
+  background-color: #1e1e2f;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.form-card textarea:focus,
+.form-card select:focus {
+  outline: none;
+  box-shadow: 0 0 5px #00f7ff;
+}
+
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: 1px solid #444;
+  background-color: #1e1e2f;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  box-sizing: border-box;
+}
+input:focus {
+  outline: none;
+  box-shadow: 0 0 5px #00f7ff;
+}
+.form-card button[type="submit"] {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #00f7ff;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  border-radius: 20px;
+  transition: transform 0.2s, box-shadow 0.3s;
+  cursor: pointer;
+}
+.form-card button[type="submit"]:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 10px #00f7ff;
+}
+
+.add-review-section {
+  margin-top: 40px;
+  padding: 0 20px 60px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Login Page */
+.login-main-centered {
+  flex: 1 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  width: 100vw;
+  padding: 0;
+  background: transparent;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  min-width: 270px;
+  margin: 40px 0;
+  padding: 36px 32px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8px 40px 0 #00f7ff2e, 0 2px 6px #0008;
+  border-radius: 24px;
+  border: 1.5px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+}
+
+.login-card h1 {
+  margin-bottom: 20px;
+  margin-top: 8px;
+  font-size: 2.2rem;
+}
+
+.login-icon {
+  font-size: 2.7rem;
+  margin-bottom: 4px;
+  color: #00f7ff;
+  text-shadow: 0 0 10px #00f7ff99;
+}
+
+.login-card label {
+  font-size: 1rem;
+  color: #fff;
+  text-align: left;
+  width: 100%;
+  margin-bottom: 6px;
+  margin-top: 15px;
+  letter-spacing: 1px;
+}
+
+.login-card input[type="email"],
+.login-card input[type="password"] {
+  width: 100%;
+  padding: 13px 18px;
+  margin-bottom: 0;
+  border-radius: 14px;
+  border: 1.3px solid #00f7ff33;
+  background: #171e27ee;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.13rem;
+  transition: box-shadow 0.22s, border 0.18s;
+  margin-top: 2px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.login-card input[type="email"]:focus,
+.login-card input[type="password"]:focus {
+  border-color: #00f7ff;
+  box-shadow: 0 0 7px #00f7ff70;
+}
+
+.login-btn {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px 0;
+  font-size: 1.14rem;
+  border-radius: 18px;
+  box-shadow: 0 0 10px #00f7ff40;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.login-btn:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 14px #00f7ff70;
+  transform: scale(1.04);
+}
+
+
+#user-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.08rem;
+  font-family:sans-serif;
+}
+
+#user-nav b {
+  font-weight: 700;
+  margin: 0 2px 0 4px;
+}
+#user-nav a {
+  color: inherit;
+  text-decoration: none;
+  margin-left: 6px;
+  transition: color 0.2s;
+}
+#user-nav a:hover {
+  color: #00f7ff;
+}
+#user-nav i {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+
+
+#user-nav {
+  display: flex;
+  align-items: center;
+  height: 50px;
+}
+.login-link {
+  align-self: center;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  height: auto;
+  box-sizing: border-box;
+}
+.logo-image {
+  height: 50px;
+  vertical-align: middle;
+}
+
+.login-link {
+  display: inline-block;
+  background: linear-gradient(90deg, #00f7ff 0%, #0b75aa 100%);
+  color: #2c1818;
+  font-weight: bold;
+  border: none;
+  border-radius: 24px;
+  padding: 11px 30px;
+  margin-left: 10px;
+  text-decoration: none;
+  box-shadow: 0 0 16px #00f7ff90, 0 0 32px #00e7ff55;
+  transition: background 0.22s, color 0.19s, box-shadow 0.22s;
+  font-family: sans-serif;
+  font-size: 1.08rem;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.login-link:hover {
+  background: linear-gradient(90deg, #000000 0%, #000000 100%);
+  color: #10192a;
+  box-shadow: 0 0 24px #00f7ff, 0 0 42px #00f7ff99;
+  filter: brightness(1.10);
+}

@@ -36,7 +36,7 @@ review_response = api.model(
         "place_id": fields.String,
         "created_at": fields.String,
         "updated_at": fields.String,
-        "user_first_name": fields.String,  # Ajouté
+        "user_first_name": fields.String,  
         "user_last_name": fields.String,   # (optionnel)
     },
 )

@@ -1,15 +1,16 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_restx import Api
 from flask_sqlalchemy import SQLAlchemy
 from config import DevelopmentConfig  
 from flask_jwt_extended import JWTManager, exceptions as jwt_exceptions
-from flask_cors import CORS  # <-- Ajout import CORS
-
+from flask_cors import CORS
 db = SQLAlchemy()
 jwt = JWTManager()
 
 def create_app(config_class=DevelopmentConfig):  
-    app = Flask(__name__)
+    import os
+    static_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'front', 'static'))
+    app = Flask(__name__, static_folder=static_folder_path)
     app.config.from_object(config_class)
 
     if not app.config.get("SQLALCHEMY_DATABASE_URI"):
@@ -19,7 +20,15 @@ def create_app(config_class=DevelopmentConfig):
     db.init_app(app)
     jwt.init_app(app)
     CORS(app)  
-
+    @app.route("/")
+    def index_html():
+        return send_from_directory(app.static_folder, "index.html")
+    
+    @app.route("/<path:filename>")
+    def static_files(filename):
+        # Sert tous les fichiers du dossier static (css, js, images…)
+        return send_from_directory(app.static_folder, filename)
+    
     # === HANDLERS D'ERREUR JWT personnalisés ===
     @app.errorhandler(jwt_exceptions.NoAuthorizationError)
     def handle_missing_auth_header(e):

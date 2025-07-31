@@ -2,12 +2,12 @@ from pydantic import BaseModel, constr
 from typing import Optional, List
 from app.models.place import Place
 
-# --- Pour une image ---
+# Pour une image 
 class PlaceImageSchema(BaseModel):
     url: str
     caption: Optional[str] = None
 
-# --- Pour création d'une place (request) ---
+# Pour création d'une place (request)
 class PlaceSchema(BaseModel):
     title: constr(strip_whitespace=True, min_length=1, max_length=100) # type: ignore
     description: constr(strip_whitespace=True, max_length=255) # type: ignore
@@ -21,7 +21,7 @@ class PlaceSchema(BaseModel):
     class Config:
         extra = "forbid"
 
-# --- Pour update (request PATCH/PUT) ---
+# Pour update (request PATCH/PUT) 
 class PlaceUpdateSchema(BaseModel):
     title: Optional[constr(strip_whitespace=True, min_length=1, max_length=100)] = None # type: ignore
     description: Optional[constr(strip_whitespace=True, max_length=255)] = None # type: ignore
@@ -35,7 +35,7 @@ class PlaceUpdateSchema(BaseModel):
     class Config:
         extra = "forbid"
 
-# --- Pour réponse (response GET) ---
+# Pour réponse (response GET) 
 class PlaceResponseSchema(BaseModel):
     id: str
     title: str

@@ -9,7 +9,7 @@ def get_current_user_id():
     ident = get_jwt_identity()
     return ident if isinstance(ident, str) else ident.get("id")
 
-# --- MODELS SWAGGER ---
+# MODELS SWAGGER
 
 reservation_model = api.model(
     "ReservationCreate",
@@ -48,7 +48,7 @@ error_model = api.model(
     {"error": fields.String(description="Error message")}
 )
 
-# --- ROUTES ---
+# ROUTES
 
 @api.route("/")
 class ReservationListResource(Resource):
